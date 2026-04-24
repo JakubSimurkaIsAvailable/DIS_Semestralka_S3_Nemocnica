@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36811.4 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DIS_Semestralka_S3_Nemocnica", "DIS_Semestralka_S3_Nemocnica\DIS_Semestralka_S3_Nemocnica.csproj", "{44380A0F-E18F-4F51-8D48-1BA7792290D4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44380A0F-E18F-4F51-8D48-1BA7792290D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44380A0F-E18F-4F51-8D48-1BA7792290D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44380A0F-E18F-4F51-8D48-1BA7792290D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44380A0F-E18F-4F51-8D48-1BA7792290D4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {78A008E9-F099-4EDA-8244-0043D2D8D972}
+	EndGlobalSection
+EndGlobal
