@@ -1,0 +1,37 @@
+using OSPABA;
+using Simulation;
+using Agents.AgentUrgentu.InstantAssistants;
+
+namespace Agents.AgentUrgentu
+{
+	//meta! id="3"
+	public class AgentUrgentu : OSPABA.Agent
+	{
+		public AgentUrgentu(int id, OSPABA.Simulation mySim, Agent parent) :
+			base(id, mySim, parent)
+		{
+			Init();
+		}
+
+		override public void PrepareReplication()
+		{
+			base.PrepareReplication();
+			// Setup component for the next replication
+		}
+
+		//meta! userInfo="Generated code: do not modify", tag="begin"
+		private void Init()
+		{
+			new ManagerUrgentu(SimId.ManagerUrgentu, MySim, this);
+			new ZaradenieDoRadu(SimId.ZaradenieDoRadu, MySim, this);
+			AddOwnMessage(Mc.VysetreniePacienta);
+			AddOwnMessage(Mc.VykonanieVstupnehoVysetrenia);
+			AddOwnMessage(Mc.PresunPacienta);
+			AddOwnMessage(Mc.PridelenieZdrojovVstupneVysetrenie);
+			AddOwnMessage(Mc.VykonanieOsetrenia);
+			AddOwnMessage(Mc.PresunPersonalu);
+			AddOwnMessage(Mc.PridelenieZdrojovOsetrenie);
+		}
+		//meta! tag="end"
+	}
+}
