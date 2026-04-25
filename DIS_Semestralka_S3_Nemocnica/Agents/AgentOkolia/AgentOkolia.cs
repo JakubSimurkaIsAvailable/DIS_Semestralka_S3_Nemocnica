@@ -28,5 +28,16 @@ namespace Agents.AgentOkolia
 			AddOwnMessage(Mc.OdchodPacienta);
 		}
 		//meta! tag="end"
+
+		public void ZacniPlanovaniePacientov()
+		{
+			MyMessage sprava = new MyMessage(MySim);
+			sprava.Addressee = FindAssistant(SimId.PrichodPacienta);
+			MyManager.StartContinualAssistant(sprava);
+
+			sprava = new MyMessage(MySim);
+			sprava.Addressee = FindAssistant(SimId.PrichodPacientaSanitka);
+			MyManager.StartContinualAssistant(sprava);
+        }
 	}
 }

@@ -21,7 +21,8 @@ namespace Agents.AgentOkolia
 			{
 				PetriNet.Clear();
 			}
-		}
+			MyAgent.ZacniPlanovaniePacientov();
+        }
 
 		//meta! sender="PrichodPacientaSanitka", id="57", type="Finish"
 		public void ProcessFinishPrichodPacientaSanitka(MessageForm message)

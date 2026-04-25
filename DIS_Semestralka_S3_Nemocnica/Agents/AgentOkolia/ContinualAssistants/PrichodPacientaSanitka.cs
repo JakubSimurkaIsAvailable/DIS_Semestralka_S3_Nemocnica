@@ -35,7 +35,8 @@ namespace Agents.AgentOkolia.ContinualAssistants
                     sprava.PacientId = MyAgent.PocetPacientov;
                     AssistantFinished(sprava);
 
-                    Hold(VygenerujCas(), message);
+                    MyMessage copy = (MyMessage)sprava.CreateCopy();
+                    Hold(VygenerujCas(), copy);
                     break;
             }
 		}
