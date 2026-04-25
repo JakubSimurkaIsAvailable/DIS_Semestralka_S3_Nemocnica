@@ -2,9 +2,13 @@ using OSPABA;
 
 namespace Simulation
 {
+
 	public class MyMessage : OSPABA.MessageForm
 	{
-		public MyMessage(OSPABA.Simulation mySim) :
+		public int PacientId { get; set; }
+		public bool PrisielSanitkou { get; set; }
+
+        public MyMessage(OSPABA.Simulation mySim) :
 			base(mySim)
 		{
 		}
@@ -24,7 +28,8 @@ namespace Simulation
 		{
 			base.Copy(message);
 			MyMessage original = (MyMessage)message;
-			// Copy attributes
-		}
+			PacientId = original.PacientId;
+			PrisielSanitkou = original.PrisielSanitkou;
+        }
 	}
 }

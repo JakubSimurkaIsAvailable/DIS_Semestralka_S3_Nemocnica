@@ -31,7 +31,10 @@ namespace Agents.AgentModelu
 		//meta! sender="AgentOkolia", id="6", type="Notice"
 		public void ProcessPrichodPacienta(MessageForm message)
 		{
-		}
+			message.Code = Mc.VysetreniePacienta;
+			message.Addressee = MySim.FindAgent(SimId.AgentUrgentu);
+			Request(message);
+        }
 
 		//meta! userInfo="Process messages defined in code", id="0"
 		public void ProcessDefault(MessageForm message)

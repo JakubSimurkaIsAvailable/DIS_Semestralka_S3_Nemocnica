@@ -1,5 +1,6 @@
 using Agents.AgentOkolia;
 using OSPABA;
+using OSPRNG;
 using Simulation;
 
 namespace Agents.AgentOkolia.ContinualAssistants
@@ -7,9 +8,11 @@ namespace Agents.AgentOkolia.ContinualAssistants
 	//meta! id="54"
 	public class PrichodPacienta : OSPABA.Scheduler
 	{
+		private ExponentialRNG _exp;
 		public PrichodPacienta(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
+			_exp = new ExponentialRNG(575);
 		}
 
 		override public void PrepareReplication()
@@ -21,13 +24,21 @@ namespace Agents.AgentOkolia.ContinualAssistants
 		//meta! sender="AgentOkolia", id="55", type="Start"
 		public void ProcessStart(MessageForm message)
 		{
-		}
+			Hold(VygenerujCas(), message);
+        }
 
 		//meta! userInfo="Process messages defined in code", id="0"
 		public void ProcessDefault(MessageForm message)
 		{
 			switch (message.Code)
 			{
+				case Mc.Finish:
+					var sprava = (MyMessage)message;
+					sprava.PacientId = MyAgent.PocetPacientov;
+					AssistantFinished(sprava);
+
+					Hold(VygenerujCas(), message);
+                    break;
 			}
 		}
 
@@ -52,6 +63,11 @@ namespace Agents.AgentOkolia.ContinualAssistants
 			{
 				return (AgentOkolia)base.MyAgent;
 			}
+		}
+
+		private double VygenerujCas()
+		{
+			return _exp.Sample() - 0.001;
 		}
 	}
 }

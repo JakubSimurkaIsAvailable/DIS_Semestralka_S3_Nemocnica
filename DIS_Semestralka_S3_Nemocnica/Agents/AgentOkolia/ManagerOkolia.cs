@@ -26,11 +26,17 @@ namespace Agents.AgentOkolia
 		//meta! sender="PrichodPacientaSanitka", id="57", type="Finish"
 		public void ProcessFinishPrichodPacientaSanitka(MessageForm message)
 		{
-		}
+			message.Code = Mc.PrichodPacienta;
+			message.Addressee = MySim.FindAgent(SimId.AgentModelu);
+			Notice(message);
+        }
 
 		//meta! sender="PrichodPacienta", id="55", type="Finish"
 		public void ProcessFinishPrichodPacienta(MessageForm message)
 		{
+			message.Code = Mc.PrichodPacienta;
+			message.Addressee = MySim.FindAgent(SimId.AgentModelu);
+            Notice(message);
 		}
 
 		//meta! sender="AgentModelu", id="5", type="Notice"
