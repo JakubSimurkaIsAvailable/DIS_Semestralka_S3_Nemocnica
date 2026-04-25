@@ -1,5 +1,6 @@
 using OSPABA;
 using Simulation;
+using Agents.AgentUrgentu.InstantAssistants;
 
 namespace Agents.AgentUrgentu
 {
@@ -41,7 +42,8 @@ namespace Agents.AgentUrgentu
 			};
 			Notice(release);
 
-			// ziadaj zdroje pre lekarske osetrenie
+			// zarad pacienta do radu na osetrenie a ziadaj zdroje
+			((ZaradenieDoRaduOsetrenie)MyAgent.FindAssistant(SimId.ZaradenieDoRaduOsetrenie)).Execute(message);
 			message.Code = Mc.PridelenieZdrojovOsetrenie;
 			message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
 			Request(message);
@@ -50,16 +52,16 @@ namespace Agents.AgentUrgentu
 		//meta! sender="AgentZdrojov", id="28", type="Response"
 		public void ProcessPridelenieZdrojovVstupneVysetrenie(MessageForm message)
 		{
-			message.Code = Mc.VykonanieVstupnehoVysetrenia;
-			message.Addressee = MySim.FindAgent(SimId.AgentVstupnehoVysetrenia);
+			message.Code = Mc.PresunPersonaluNaVstupneVysetrenie;
+			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
 		}
 
 		//meta! sender="AgentZdrojov", id="27", type="Response"
 		public void ProcessPridelenieZdrojovOsetrenie(MessageForm message)
 		{
-			message.Code = Mc.VykonanieOsetrenia;
-			message.Addressee = MySim.FindAgent(SimId.AgentOsetrenia);
+			message.Code = Mc.PresunPersonaluNaOsetrenie;
+			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
 		}
 
@@ -79,7 +81,11 @@ namespace Agents.AgentUrgentu
 				Addressee = MySim.FindAgent(SimId.AgentZdrojov)
 			};
 			Notice(release);
-			Response(message);
+
+			// presun pacienta von z urgentneho oddelenia
+			message.Code = Mc.OdchodPacientaZUrgentu;
+			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
+			Request(message);
 		}
 
 		//meta! sender="AgentPresunov", id="78", type="Response"
@@ -93,9 +99,26 @@ namespace Agents.AgentUrgentu
 			switch (message.Code)
 			{
 			case Mc.PrichodPacientaNaUrgent:
+				((ZaradenieDoRaduVstupneVysetrenie)MyAgent.FindAssistant(SimId.ZaradenieDoRaduVstupneVysetrenie)).Execute(message);
 				message.Code = Mc.PridelenieZdrojovVstupneVysetrenie;
 				message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
 				Request(message);
+				break;
+
+			case Mc.PresunPersonaluNaVstupneVysetrenie:
+				message.Code = Mc.VykonanieVstupnehoVysetrenia;
+				message.Addressee = MySim.FindAgent(SimId.AgentVstupnehoVysetrenia);
+				Request(message);
+				break;
+
+			case Mc.PresunPersonaluNaOsetrenie:
+				message.Code = Mc.VykonanieOsetrenia;
+				message.Addressee = MySim.FindAgent(SimId.AgentOsetrenia);
+				Request(message);
+				break;
+
+			case Mc.OdchodPacientaZUrgentu:
+				Response(message);
 				break;
 			}
 		}
