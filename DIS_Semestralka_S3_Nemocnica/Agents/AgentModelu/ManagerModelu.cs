@@ -26,6 +26,9 @@ namespace Agents.AgentModelu
 		//meta! sender="AgentUrgentu", id="8", type="Response"
 		public void ProcessVysetreniePacienta(MessageForm message)
 		{
+			message.Code = Mc.OdchodPacienta;
+			message.Addressee = MySim.FindAgent(SimId.AgentOkolia);
+			Notice(message);
 		}
 
 		//meta! sender="AgentOkolia", id="6", type="Notice"
