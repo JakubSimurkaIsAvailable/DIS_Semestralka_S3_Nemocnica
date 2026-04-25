@@ -15,7 +15,6 @@ namespace Agents.AgentUrgentu
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			// Setup component for the next replication
 
 			if (PetriNet != null)
 			{
@@ -26,11 +25,42 @@ namespace Agents.AgentUrgentu
 		//meta! sender="AgentModelu", id="8", type="Request"
 		public void ProcessVysetreniePacienta(MessageForm message)
 		{
+			message.Code = Mc.PrichodPacientaNaUrgent;
+			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
+			Request(message);
 		}
 
 		//meta! sender="AgentVstupnehoVysetrenia", id="22", type="Response"
 		public void ProcessVykonanieVstupnehoVysetrenia(MessageForm message)
 		{
+			// uvolni zdroje vstupneho vysetrenia
+			var release = new MyMessage(MySim)
+			{
+				Code = Mc.UvolnenieZdrojovVstupneVysetrenie,
+				Addressee = MySim.FindAgent(SimId.AgentZdrojov)
+			};
+			Notice(release);
+
+			// ziadaj zdroje pre lekarske osetrenie
+			message.Code = Mc.PridelenieZdrojovOsetrenie;
+			message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
+			Request(message);
+		}
+
+		//meta! sender="AgentZdrojov", id="28", type="Response"
+		public void ProcessPridelenieZdrojovVstupneVysetrenie(MessageForm message)
+		{
+			message.Code = Mc.VykonanieVstupnehoVysetrenia;
+			message.Addressee = MySim.FindAgent(SimId.AgentVstupnehoVysetrenia);
+			Request(message);
+		}
+
+		//meta! sender="AgentZdrojov", id="27", type="Response"
+		public void ProcessPridelenieZdrojovOsetrenie(MessageForm message)
+		{
+			message.Code = Mc.VykonanieOsetrenia;
+			message.Addressee = MySim.FindAgent(SimId.AgentOsetrenia);
+			Request(message);
 		}
 
 		//meta! sender="AgentPresunov", id="77", type="Response"
@@ -38,23 +68,22 @@ namespace Agents.AgentUrgentu
 		{
 		}
 
-		//meta! sender="AgentZdrojov", id="28", type="Response"
-		public void ProcessPridelenieZdrojovVstupneVysetrenie(MessageForm message)
-		{
-		}
-
 		//meta! sender="AgentOsetrenia", id="24", type="Response"
 		public void ProcessVykonanieOsetrenia(MessageForm message)
 		{
+			// uvolni zdroje osetrenia
+			var release = new MyMessage(MySim)
+			{
+				PouzilaMiestnostA = ((MyMessage)message).PouzilaMiestnostA,
+				Code = Mc.UvolnenieZdrojovOsetrenie,
+				Addressee = MySim.FindAgent(SimId.AgentZdrojov)
+			};
+			Notice(release);
+			Response(message);
 		}
 
 		//meta! sender="AgentPresunov", id="78", type="Response"
 		public void ProcessPresunPersonalu(MessageForm message)
-		{
-		}
-
-		//meta! sender="AgentZdrojov", id="27", type="Response"
-		public void ProcessPridelenieZdrojovOsetrenie(MessageForm message)
 		{
 		}
 
@@ -63,6 +92,11 @@ namespace Agents.AgentUrgentu
 		{
 			switch (message.Code)
 			{
+			case Mc.PrichodPacientaNaUrgent:
+				message.Code = Mc.PridelenieZdrojovVstupneVysetrenie;
+				message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
+				Request(message);
+				break;
 			}
 		}
 

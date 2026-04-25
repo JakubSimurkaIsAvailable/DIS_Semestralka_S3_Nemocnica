@@ -7,6 +7,14 @@ namespace Agents.AgentZdrojov
 	//meta! id="12"
 	public class AgentZdrojov : OSPABA.Agent
 	{
+		public int VolneSestry { get; set; } = 3;   // TODO: vstupny parameter
+		public int VolneLekari { get; set; } = 2;   // TODO: vstupny parameter
+		public int VolneMiestnostiA { get; set; } = 5;
+		public int VolneMiestnostiB { get; set; } = 7;
+
+		public Queue<MyMessage> PendingVstupneVysetrenie { get; } = new();
+		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> PendingOsetrenie { get; } = new();
+
 		public AgentZdrojov(int id, OSPABA.Simulation mySim, Agent parent) :
 			base(id, mySim, parent)
 		{
@@ -16,7 +24,12 @@ namespace Agents.AgentZdrojov
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			// Setup component for the next replication
+			VolneSestry = 3;     // TODO: vstupny parameter
+			VolneLekari = 2;     // TODO: vstupny parameter
+			VolneMiestnostiA = 5;
+			VolneMiestnostiB = 7;
+			PendingVstupneVysetrenie.Clear();
+			PendingOsetrenie.Clear();
 		}
 
 		//meta! userInfo="Generated code: do not modify", tag="begin"
@@ -27,6 +40,8 @@ namespace Agents.AgentZdrojov
 			new PriradenieZdrojovPreVstupneVysetrenie(SimId.PriradenieZdrojovPreVstupneVysetrenie, MySim, this);
 			AddOwnMessage(Mc.PridelenieZdrojovVstupneVysetrenie);
 			AddOwnMessage(Mc.PridelenieZdrojovOsetrenie);
+			AddOwnMessage(Mc.UvolnenieZdrojovVstupneVysetrenie);
+			AddOwnMessage(Mc.UvolnenieZdrojovOsetrenie);
 		}
 		//meta! tag="end"
 	}

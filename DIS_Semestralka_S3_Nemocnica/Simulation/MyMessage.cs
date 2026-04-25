@@ -7,6 +7,8 @@ namespace Simulation
 	{
 		public int PacientId { get; set; }
 		public bool PrisielSanitkou { get; set; }
+		public int Priorita { get; set; }
+		public bool PouzilaMiestnostA { get; set; }
 
         public MyMessage(OSPABA.Simulation mySim) :
 			base(mySim)
@@ -30,6 +32,8 @@ namespace Simulation
 			MyMessage original = (MyMessage)message;
 			PacientId = original.PacientId;
 			PrisielSanitkou = original.PrisielSanitkou;
+			Priorita = original.Priorita;
+			PouzilaMiestnostA = original.PouzilaMiestnostA;
         }
 	}
 }

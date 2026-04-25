@@ -16,7 +16,6 @@ namespace Agents.AgentUrgentu
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			// Setup component for the next replication
 		}
 
 		//meta! userInfo="Generated code: do not modify", tag="begin"
