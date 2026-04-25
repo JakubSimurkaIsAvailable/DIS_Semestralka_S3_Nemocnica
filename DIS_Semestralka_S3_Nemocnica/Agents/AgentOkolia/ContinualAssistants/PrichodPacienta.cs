@@ -24,6 +24,12 @@ namespace Agents.AgentOkolia.ContinualAssistants
 		//meta! sender="AgentOkolia", id="55", type="Start"
 		public void ProcessStart(MessageForm message)
 		{
+			if (MySim.CurrentTime > 0)
+			{
+				var notif = (MyMessage)message.CreateCopy();
+				notif.PacientId = MyAgent.PocetPacientov++;
+				AssistantFinished(notif);
+			}
 			Hold(VygenerujCas(), message);
         }
 
@@ -32,14 +38,6 @@ namespace Agents.AgentOkolia.ContinualAssistants
 		{
 			switch (message.Code)
 			{
-				case Mc.Finish:
-					var sprava = (MyMessage)message;
-					sprava.PacientId = MyAgent.PocetPacientov++;
-					AssistantFinished(sprava);
-
-					MyMessage copy = (MyMessage)sprava.CreateCopy();
-					Hold(VygenerujCas(), copy);
-                    break;
 			}
 		}
 

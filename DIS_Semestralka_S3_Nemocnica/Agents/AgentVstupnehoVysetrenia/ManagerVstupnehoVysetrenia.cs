@@ -41,6 +41,7 @@ namespace Agents.AgentVstupnehoVysetrenia
 		{
 			var akcia = (PriradeniePriority)MyAgent.FindAssistant(SimId.PriradeniePriority);
 			akcia.Execute(message);
+			message.Code = Mc.VykonanieVstupnehoVysetrenia;
 			Response(message);
 		}
 

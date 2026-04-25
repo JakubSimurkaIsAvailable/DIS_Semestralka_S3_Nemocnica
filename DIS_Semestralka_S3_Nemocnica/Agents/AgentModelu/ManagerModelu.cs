@@ -26,10 +26,15 @@ namespace Agents.AgentModelu
 		//meta! sender="AgentUrgentu", id="8", type="Response"
 		public void ProcessVysetreniePacienta(MessageForm message)
 		{
+			var msg = (MyMessage)message;
+			Console.WriteLine($"[{Cas()}] Pacient #{msg.PacientId} opustil urgent");
 			message.Code = Mc.OdchodPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentOkolia);
 			Notice(message);
 		}
+
+		private string Cas() =>
+			TimeSpan.FromSeconds(MySim.CurrentTime).ToString(@"hh\:mm\:ss");
 
 		//meta! sender="AgentOkolia", id="6", type="Notice"
 		public void ProcessPrichodPacienta(MessageForm message)

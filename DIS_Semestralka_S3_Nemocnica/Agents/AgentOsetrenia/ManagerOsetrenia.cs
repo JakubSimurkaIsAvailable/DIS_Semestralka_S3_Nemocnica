@@ -38,6 +38,7 @@ namespace Agents.AgentOsetrenia
 		//meta! sender="ProcessOsetrenie", id="41", type="Finish"
 		public void ProcessFinish(MessageForm message)
 		{
+			message.Code = Mc.VykonanieOsetrenia;
 			Response(message);
 		}
 

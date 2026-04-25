@@ -24,25 +24,29 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 		{
 		}
 
+		private HashSet<int> _active = new HashSet<int>();
+
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			// Setup component for the next replication
+			_active.Clear();
 		}
 
 		//meta! sender="AgentVstupnehoVysetrenia", id="39", type="Start"
 		public void ProcessStart(MessageForm message)
 		{
-			MyMessage sprava = (MyMessage)message;
-			double trvanieVstupnehoVysetrenia;
-            if (sprava.PrisielSanitkou)
+			var msg = (MyMessage)message;
+			if (_active.Contains(msg.PacientId))
 			{
-				trvanieVstupnehoVysetrenia = discreteRNG.Sample();
-            } else
-			{
-				trvanieVstupnehoVysetrenia = empiricRNG.Sample();
-            }
-			Hold(trvanieVstupnehoVysetrenia, message);
+				_active.Remove(msg.PacientId);
+				AssistantFinished(message);
+				return;
+			}
+			_active.Add(msg.PacientId);
+			double trvanie = msg.PrisielSanitkou
+				? discreteRNG.Sample()
+				: empiricRNG.Sample();
+			Hold(trvanie, message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"
@@ -50,9 +54,6 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 		{
 			switch (message.Code)
 			{
-			case Mc.Finish:
-				AssistantFinished(message);
-				break;
 			}
 		}
 

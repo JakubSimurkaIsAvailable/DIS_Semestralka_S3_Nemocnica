@@ -12,13 +12,7 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
 		{
 		}
 
-		override public void PrepareReplication()
-		{
-			base.PrepareReplication();
-			// Setup component for the next replication
-		}
-
-        // TODO: doplnit spravne rozdelenia podla priority pacienta
+		// TODO: doplnit spravne rozdelenia podla priority pacienta
         private static readonly OSPRNG.EmpiricPair<double>[] _sam = {
             new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(10 * 60, 12 * 60), 0.1),
             new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(12 * 60, 14 * 60), 0.6),
@@ -26,21 +20,27 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
         };
 		private static readonly OSPRNG.EmpiricRNG<double> _samRNG = new OSPRNG.EmpiricRNG<double>(_sam);
         private static readonly OSPRNG.UniformContinuousRNG _sanitkaRNG = new OSPRNG.UniformContinuousRNG(15 * 60, 30 * 60);
+		private HashSet<int> _active = new HashSet<int>();
+
+		override public void PrepareReplication()
+		{
+			base.PrepareReplication();
+			_active.Clear();
+		}
 
         //meta! sender="AgentOsetrenia", id="41", type="Start"
         public void ProcessStart(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			OSPRNG.RNG<double> rng;
-            if(msg.PrisielSanitkou == true)
+			if (_active.Contains(msg.PacientId))
 			{
-				rng = _sanitkaRNG;
+				_active.Remove(msg.PacientId);
+				AssistantFinished(message);
+				return;
 			}
-			else
-			{
-				rng = _samRNG;
-            }
-            Hold(rng.Sample(), message);
+			_active.Add(msg.PacientId);
+			OSPRNG.RNG<double> rng = msg.PrisielSanitkou ? (OSPRNG.RNG<double>)_sanitkaRNG : _samRNG;
+			Hold(rng.Sample(), message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"
@@ -48,9 +48,6 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
 		{
 			switch (message.Code)
 			{
-			case Mc.Finish:
-				AssistantFinished(message);
-				break;
 			}
 		}
 

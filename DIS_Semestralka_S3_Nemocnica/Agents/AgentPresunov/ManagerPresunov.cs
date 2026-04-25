@@ -26,22 +26,28 @@ namespace Agents.AgentPresunov
 		//meta! sender="AgentUrgentu", id="77", type="Request"
 		public void ProcessPresunPacienta(MessageForm message)
 		{
+			message.Addressee = MyAgent.FindAssistant(SimId.ProcessPresunutiaPacienta);
+			StartContinualAssistant(message);
 		}
 
 		//meta! sender="AgentUrgentu", id="78", type="Request"
 		public void ProcessPresunPersonalu(MessageForm message)
 		{
+			message.Addressee = MyAgent.FindAssistant(SimId.ProcessPresunitiaPersonalu);
+			StartContinualAssistant(message);
 		}
 
 		//meta! sender="ProcessPresunitiaPersonalu", id="76", type="Finish"
 		public void ProcessFinishProcessPresunitiaPersonalu(MessageForm message)
 		{
+			message.Code = Mc.PresunPersonalu;
 			Response(message);
 		}
 
 		//meta! sender="ProcessPresunutiaPacienta", id="74", type="Finish"
 		public void ProcessFinishProcessPresunutiaPacienta(MessageForm message)
 		{
+			message.Code = Mc.PresunPacienta;
 			Response(message);
 		}
 
@@ -50,27 +56,6 @@ namespace Agents.AgentPresunov
 		{
 			switch (message.Code)
 			{
-			case Mc.PrichodPacientaNaUrgent:
-				message.Addressee = MyAgent.FindAssistant(SimId.ProcessPresunutiaPacienta);
-				StartContinualAssistant(message);
-				break;
-
-			case Mc.OdchodPacientaZUrgentu:
-				((MyMessage)message).JeOdchod = true;
-				message.Addressee = MyAgent.FindAssistant(SimId.ProcessPresunutiaPacienta);
-				StartContinualAssistant(message);
-				break;
-
-			case Mc.PresunPersonaluNaVstupneVysetrenie:
-				message.Addressee = MyAgent.FindAssistant(SimId.ProcessPresunitiaPersonalu);
-				StartContinualAssistant(message);
-				break;
-
-			case Mc.PresunPersonaluNaOsetrenie:
-				((MyMessage)message).JePresunNaOsetrenie = true;
-				message.Addressee = MyAgent.FindAssistant(SimId.ProcessPresunitiaPersonalu);
-				StartContinualAssistant(message);
-				break;
 			}
 		}
 

@@ -12,23 +12,30 @@ namespace Agents.AgentPresunov.ContinualAssistants
 		{
 		}
 
+		// TODO: doplnit spravne rozdelenie pre cas presunu personalu
+		private OSPRNG.TriangularRNG _presunPersonalu = new OSPRNG.TriangularRNG(15, 20, 45);
+		private HashSet<int> _active = new HashSet<int>();
+
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			// Setup component for the next replication
+			_active.Clear();
 		}
-
-		// TODO: doplnit spravne rozdelenie pre cas presunu personalu
-		private OSPRNG.TriangularRNG _presunPersonalu = new OSPRNG.TriangularRNG(15, 20, 45);
 
         //meta! sender="AgentPresunov", id="76", type="Start"
         public void ProcessStart(MessageForm message)
 		{
-			double cas;
-			if (((MyMessage)message).JePresunNaOsetrenie)
-				cas = Math.Max(_presunPersonalu.Sample(), _presunPersonalu.Sample()); // sestra + lekar prichadzaju nezavisle
-			else
-				cas = _presunPersonalu.Sample(); // iba sestra
+			var msg = (MyMessage)message;
+			if (_active.Contains(msg.PacientId))
+			{
+				_active.Remove(msg.PacientId);
+				AssistantFinished(message);
+				return;
+			}
+			_active.Add(msg.PacientId);
+			double cas = msg.JePresunNaOsetrenie
+				? Math.Max(_presunPersonalu.Sample(), _presunPersonalu.Sample())
+				: _presunPersonalu.Sample();
 			Hold(cas, message);
 		}
 
@@ -37,9 +44,6 @@ namespace Agents.AgentPresunov.ContinualAssistants
 		{
 			switch (message.Code)
 			{
-			case Mc.Finish:
-				AssistantFinished(message);
-				break;
 			}
 		}
 

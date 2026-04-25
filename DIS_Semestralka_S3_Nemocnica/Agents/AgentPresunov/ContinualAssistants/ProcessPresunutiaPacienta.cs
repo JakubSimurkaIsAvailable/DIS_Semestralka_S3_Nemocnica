@@ -16,29 +16,28 @@ namespace Agents.AgentPresunov.ContinualAssistants
 		{
 		}
 
+		private HashSet<int> _active = new HashSet<int>();
+
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			// Setup component for the next replication
+			_active.Clear();
 		}
 
 		//meta! sender="AgentPresunov", id="74", type="Start"
 		public void ProcessStart(MessageForm message)
 		{
-			MyMessage sprava = (MyMessage)message;
-			RNG<double> rng;
-			if (sprava.JeOdchod)
+			var msg = (MyMessage)message;
+			if (_active.Contains(msg.PacientId))
 			{
-				rng = _odchod;
+				_active.Remove(msg.PacientId);
+				AssistantFinished(message);
+				return;
 			}
-			else if (sprava.PrisielSanitkou)
-			{
-				rng = _prichodSanitka;
-			}
-			else
-			{
-				rng = _prichodSamostatne;
-			}
+			_active.Add(msg.PacientId);
+			RNG<double> rng = msg.JeOdchod ? _odchod
+				: msg.PrisielSanitkou ? (RNG<double>)_prichodSanitka
+				: _prichodSamostatne;
 			Hold(rng.Sample(), message);
 		}
 
@@ -47,9 +46,6 @@ namespace Agents.AgentPresunov.ContinualAssistants
 		{
 			switch (message.Code)
 			{
-			case Mc.Finish:
-				AssistantFinished(message);
-				break;
 			}
 		}
 

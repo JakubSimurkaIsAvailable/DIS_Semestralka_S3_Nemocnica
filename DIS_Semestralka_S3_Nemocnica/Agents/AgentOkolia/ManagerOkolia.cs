@@ -15,7 +15,6 @@ namespace Agents.AgentOkolia
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			// Setup component for the next replication
 
 			if (PetriNet != null)
 			{
@@ -27,6 +26,8 @@ namespace Agents.AgentOkolia
 		//meta! sender="PrichodPacientaSanitka", id="57", type="Finish"
 		public void ProcessFinishPrichodPacientaSanitka(MessageForm message)
 		{
+			var msg = (MyMessage)message;
+			Console.WriteLine($"[{Cas()}] Pacient #{msg.PacientId} prisiel SANITKOU");
 			message.Code = Mc.PrichodPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentModelu);
 			Notice(message);
@@ -35,10 +36,15 @@ namespace Agents.AgentOkolia
 		//meta! sender="PrichodPacienta", id="55", type="Finish"
 		public void ProcessFinishPrichodPacienta(MessageForm message)
 		{
+			var msg = (MyMessage)message;
+			Console.WriteLine($"[{Cas()}] Pacient #{msg.PacientId} prisiel samostatne");
 			message.Code = Mc.PrichodPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentModelu);
             Notice(message);
 		}
+
+		private string Cas() =>
+			TimeSpan.FromSeconds(MySim.CurrentTime).ToString(@"hh\:mm\:ss");
 
 		//meta! sender="AgentModelu", id="5", type="Notice"
 		public void ProcessOdchodPacienta(MessageForm message)
