@@ -13,10 +13,12 @@ namespace Agents.AgentOkolia
 			Init();
 		}
 
+		public int PocetPacientov { get; set; }
+
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			// Setup component for the next replication
+			PocetPacientov = 0;
 		}
 
 		//meta! userInfo="Generated code: do not modify", tag="begin"

@@ -32,7 +32,8 @@ namespace Agents.AgentOkolia.ContinualAssistants
 			{
                 case Mc.Finish:
                     var sprava = (MyMessage)message;
-                    sprava.PacientId = MyAgent.PocetPacientov;
+                    sprava.PacientId = MyAgent.PocetPacientov++;
+                    sprava.PrisielSanitkou = true;
                     AssistantFinished(sprava);
 
                     MyMessage copy = (MyMessage)sprava.CreateCopy();
