@@ -1,5 +1,6 @@
 using OSPABA;
 using Simulation;
+using Agents.AgentVstupnehoVysetrenia.InstantAssistants;
 
 namespace Agents.AgentVstupnehoVysetrenia
 {
@@ -26,6 +27,8 @@ namespace Agents.AgentVstupnehoVysetrenia
 		//meta! sender="AgentUrgentu", id="22", type="Request"
 		public void ProcessVykonanieVstupnehoVysetrenia(MessageForm message)
 		{
+			message.Addressee = MyAgent.FindAssistant(SimId.ProcessVstupneVysetrenie);
+			StartContinualAssistant(message);
 		}
 
 		//meta! sender="AgentUrgentu", id="23", type="Notice"
@@ -36,6 +39,9 @@ namespace Agents.AgentVstupnehoVysetrenia
 		//meta! sender="ProcessVstupneVysetrenie", id="39", type="Finish"
 		public void ProcessFinish(MessageForm message)
 		{
+			var akcia = (PriradeniePriority)MyAgent.FindAssistant(SimId.PriradeniePriority);
+			akcia.Execute(message);
+			Response(message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"
