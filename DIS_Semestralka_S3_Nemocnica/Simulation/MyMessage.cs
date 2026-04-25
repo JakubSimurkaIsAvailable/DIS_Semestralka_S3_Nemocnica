@@ -9,6 +9,8 @@ namespace Simulation
 		public bool PrisielSanitkou { get; set; }
 		public int Priorita { get; set; }
 		public bool PouzilaMiestnostA { get; set; }
+		public bool JeOdchod { get; set; }
+		public bool JePresunNaOsetrenie { get; set; }
 
         public MyMessage(OSPABA.Simulation mySim) :
 			base(mySim)
@@ -34,6 +36,8 @@ namespace Simulation
 			PrisielSanitkou = original.PrisielSanitkou;
 			Priorita = original.Priorita;
 			PouzilaMiestnostA = original.PouzilaMiestnostA;
+			JeOdchod = original.JeOdchod;
+			JePresunNaOsetrenie = original.JePresunNaOsetrenie;
         }
 	}
 }
