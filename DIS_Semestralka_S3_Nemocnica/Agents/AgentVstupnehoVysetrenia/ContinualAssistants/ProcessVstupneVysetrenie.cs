@@ -10,8 +10,8 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 	{
         //prisiel sam dlzka trvania vstupneho vysetrenia
         private static readonly OSPRNG.EmpiricPair<double>[] _sam = {
-			new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(3, 5), 0.6),
-			new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(5, 9), 0.4)
+			new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(3 * 60, 5 * 60), 0.6),
+			new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(5 * 60, 9 * 60), 0.4)
 		};
 
         private OSPRNG.EmpiricRNG<double> empiricRNG = new OSPRNG.EmpiricRNG<double>(_sam);
