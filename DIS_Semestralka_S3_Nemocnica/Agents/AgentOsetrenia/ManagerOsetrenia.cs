@@ -31,11 +31,14 @@ namespace Agents.AgentOsetrenia
 		//meta! sender="AgentUrgentu", id="24", type="Request"
 		public void ProcessVykonanieOsetrenia(MessageForm message)
 		{
+			message.Addressee = MyAgent.FindAssistant(SimId.ProcessOsetrenie);
+			StartContinualAssistant(message);
 		}
 
 		//meta! sender="ProcessOsetrenie", id="41", type="Finish"
 		public void ProcessFinish(MessageForm message)
 		{
+			Response(message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"

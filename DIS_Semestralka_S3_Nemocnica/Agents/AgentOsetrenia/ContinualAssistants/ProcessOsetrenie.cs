@@ -18,9 +18,29 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
 			// Setup component for the next replication
 		}
 
-		//meta! sender="AgentOsetrenia", id="41", type="Start"
-		public void ProcessStart(MessageForm message)
+        // TODO: doplnit spravne rozdelenia podla priority pacienta
+        private static readonly OSPRNG.EmpiricPair<double>[] _sam = {
+            new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(10 * 60, 12 * 60), 0.1),
+            new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(12 * 60, 14 * 60), 0.6),
+			new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(14 * 60, 18 * 60), 0.3)
+        };
+		private static readonly OSPRNG.EmpiricRNG<double> _samRNG = new OSPRNG.EmpiricRNG<double>(_sam);
+        private static readonly OSPRNG.UniformContinuousRNG _sanitkaRNG = new OSPRNG.UniformContinuousRNG(15 * 60, 30 * 60);
+
+        //meta! sender="AgentOsetrenia", id="41", type="Start"
+        public void ProcessStart(MessageForm message)
 		{
+			var msg = (MyMessage)message;
+			OSPRNG.RNG<double> rng;
+            if(msg.PrisielSanitkou == true)
+			{
+				rng = _sanitkaRNG;
+			}
+			else
+			{
+				rng = _samRNG;
+            }
+            Hold(rng.Sample(), message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"
@@ -28,6 +48,9 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
 		{
 			switch (message.Code)
 			{
+			case Mc.Finish:
+				AssistantFinished(message);
+				break;
 			}
 		}
 
