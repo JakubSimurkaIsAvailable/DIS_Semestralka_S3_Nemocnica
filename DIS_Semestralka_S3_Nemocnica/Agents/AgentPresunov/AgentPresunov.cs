@@ -28,6 +28,9 @@ namespace Agents.AgentPresunov
 			AddOwnMessage(Mc.PresunPacienta);
 			AddOwnMessage(Mc.PresunPersonalu);
 			AddOwnMessage(Mc.PrichodPacientaNaUrgent);
+			AddOwnMessage(Mc.OdchodPacientaZUrgentu);
+			AddOwnMessage(Mc.PresunPersonaluNaVstupneVysetrenie);
+			AddOwnMessage(Mc.PresunPersonaluNaOsetrenie);
 		}
 		//meta! tag="end"
 	}

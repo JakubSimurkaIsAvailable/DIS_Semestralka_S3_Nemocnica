@@ -36,6 +36,7 @@ namespace Agents.AgentPresunov
 		//meta! sender="ProcessPresunitiaPersonalu", id="76", type="Finish"
 		public void ProcessFinishProcessPresunitiaPersonalu(MessageForm message)
 		{
+			Response(message);
 		}
 
 		//meta! sender="ProcessPresunutiaPacienta", id="74", type="Finish"
@@ -51,6 +52,23 @@ namespace Agents.AgentPresunov
 			{
 			case Mc.PrichodPacientaNaUrgent:
 				message.Addressee = MyAgent.FindAssistant(SimId.ProcessPresunutiaPacienta);
+				StartContinualAssistant(message);
+				break;
+
+			case Mc.OdchodPacientaZUrgentu:
+				((MyMessage)message).JeOdchod = true;
+				message.Addressee = MyAgent.FindAssistant(SimId.ProcessPresunutiaPacienta);
+				StartContinualAssistant(message);
+				break;
+
+			case Mc.PresunPersonaluNaVstupneVysetrenie:
+				message.Addressee = MyAgent.FindAssistant(SimId.ProcessPresunitiaPersonalu);
+				StartContinualAssistant(message);
+				break;
+
+			case Mc.PresunPersonaluNaOsetrenie:
+				((MyMessage)message).JePresunNaOsetrenie = true;
+				message.Addressee = MyAgent.FindAssistant(SimId.ProcessPresunitiaPersonalu);
 				StartContinualAssistant(message);
 				break;
 			}

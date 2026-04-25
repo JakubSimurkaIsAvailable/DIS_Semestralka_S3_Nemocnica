@@ -10,6 +10,7 @@ namespace Agents.AgentPresunov.ContinualAssistants
 	{
 		private OSPRNG.TriangularRNG _prichodSamostatne = new OSPRNG.TriangularRNG(120, 150, 300);
 		private OSPRNG.UniformContinuousRNG _prichodSanitka = new OSPRNG.UniformContinuousRNG(90, 200);
+		private OSPRNG.UniformContinuousRNG _odchod = new OSPRNG.UniformContinuousRNG(150, 240);
         public ProcessPresunutiaPacienta(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
@@ -24,17 +25,21 @@ namespace Agents.AgentPresunov.ContinualAssistants
 		//meta! sender="AgentPresunov", id="74", type="Start"
 		public void ProcessStart(MessageForm message)
 		{
+			MyMessage sprava = (MyMessage)message;
 			RNG<double> rng;
-            MyMessage sprava = (MyMessage)message;
-			if(sprava.PrisielSanitkou)
+			if (sprava.JeOdchod)
+			{
+				rng = _odchod;
+			}
+			else if (sprava.PrisielSanitkou)
 			{
 				rng = _prichodSanitka;
 			}
 			else
 			{
 				rng = _prichodSamostatne;
-            }
-            Hold(rng.Sample(), message);
+			}
+			Hold(rng.Sample(), message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"

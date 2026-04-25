@@ -18,9 +18,18 @@ namespace Agents.AgentPresunov.ContinualAssistants
 			// Setup component for the next replication
 		}
 
-		//meta! sender="AgentPresunov", id="76", type="Start"
-		public void ProcessStart(MessageForm message)
+		// TODO: doplnit spravne rozdelenie pre cas presunu personalu
+		private OSPRNG.TriangularRNG _presunPersonalu = new OSPRNG.TriangularRNG(15, 20, 45);
+
+        //meta! sender="AgentPresunov", id="76", type="Start"
+        public void ProcessStart(MessageForm message)
 		{
+			double cas;
+			if (((MyMessage)message).JePresunNaOsetrenie)
+				cas = Math.Max(_presunPersonalu.Sample(), _presunPersonalu.Sample()); // sestra + lekar prichadzaju nezavisle
+			else
+				cas = _presunPersonalu.Sample(); // iba sestra
+			Hold(cas, message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"
@@ -28,6 +37,9 @@ namespace Agents.AgentPresunov.ContinualAssistants
 		{
 			switch (message.Code)
 			{
+			case Mc.Finish:
+				AssistantFinished(message);
+				break;
 			}
 		}
 
