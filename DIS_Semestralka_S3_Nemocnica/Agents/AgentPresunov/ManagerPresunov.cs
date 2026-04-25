@@ -41,6 +41,7 @@ namespace Agents.AgentPresunov
 		//meta! sender="ProcessPresunutiaPacienta", id="74", type="Finish"
 		public void ProcessFinishProcessPresunutiaPacienta(MessageForm message)
 		{
+			Response(message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"
@@ -48,6 +49,10 @@ namespace Agents.AgentPresunov
 		{
 			switch (message.Code)
 			{
+			case Mc.PrichodPacientaNaUrgent:
+				message.Addressee = MyAgent.FindAssistant(SimId.ProcessPresunutiaPacienta);
+				StartContinualAssistant(message);
+				break;
 			}
 		}
 

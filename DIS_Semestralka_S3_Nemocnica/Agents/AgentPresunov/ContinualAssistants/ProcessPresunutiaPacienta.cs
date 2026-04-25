@@ -1,13 +1,16 @@
 using OSPABA;
 using Agents.AgentPresunov;
 using Simulation;
+using OSPRNG;
 
 namespace Agents.AgentPresunov.ContinualAssistants
 {
 	//meta! id="73"
 	public class ProcessPresunutiaPacienta : OSPABA.Process
 	{
-		public ProcessPresunutiaPacienta(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
+		private OSPRNG.TriangularRNG _prichodSamostatne = new OSPRNG.TriangularRNG(120, 150, 300);
+		private OSPRNG.UniformContinuousRNG _prichodSanitka = new OSPRNG.UniformContinuousRNG(90, 200);
+        public ProcessPresunutiaPacienta(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
 		}
@@ -21,6 +24,17 @@ namespace Agents.AgentPresunov.ContinualAssistants
 		//meta! sender="AgentPresunov", id="74", type="Start"
 		public void ProcessStart(MessageForm message)
 		{
+			RNG<double> rng;
+            MyMessage sprava = (MyMessage)message;
+			if(sprava.PrisielSanitkou)
+			{
+				rng = _prichodSanitka;
+			}
+			else
+			{
+				rng = _prichodSamostatne;
+            }
+            Hold(rng.Sample(), message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"
@@ -28,6 +42,9 @@ namespace Agents.AgentPresunov.ContinualAssistants
 		{
 			switch (message.Code)
 			{
+			case Mc.Finish:
+				AssistantFinished(message);
+				break;
 			}
 		}
 

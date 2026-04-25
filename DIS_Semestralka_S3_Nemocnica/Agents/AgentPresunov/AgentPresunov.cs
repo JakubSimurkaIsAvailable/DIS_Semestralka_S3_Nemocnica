@@ -27,6 +27,7 @@ namespace Agents.AgentPresunov
 			new ProcessPresunitiaPersonalu(SimId.ProcessPresunitiaPersonalu, MySim, this);
 			AddOwnMessage(Mc.PresunPacienta);
 			AddOwnMessage(Mc.PresunPersonalu);
+			AddOwnMessage(Mc.PrichodPacientaNaUrgent);
 		}
 		//meta! tag="end"
 	}
