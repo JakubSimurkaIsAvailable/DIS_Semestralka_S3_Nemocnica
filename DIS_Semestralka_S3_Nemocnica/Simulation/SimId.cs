@@ -19,12 +19,13 @@ namespace Simulation
 		public const int ManagerVstupnehoVysetrenia = 104;
 		public const int ManagerOsetrenia = 105;
 		public const int ManagerZdrojov = 106;
+		public const int ZaradenieDoRaduOsetrenie = 1017;
 		public const int PriradeniePriority = 1013;
 		public const int ProcessVstupneVysetrenie = 1004;
 		public const int ProcessOsetrenie = 1005;
 		public const int ProcessPresunutiaPacienta = 1014;
 		public const int ProcessPresunitiaPersonalu = 1015;
-		public const int ZaradenieDoRadu = 1016;
+		public const int ZaradenieDoRaduVstupneVysetrenie = 1016;
 		public const int PrichodPacienta = 1009;
 		public const int PrichodPacientaSanitka = 1010;
 		public const int PriradenieZdrojovPreVstupneVysetrenie = 1011;

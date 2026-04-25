@@ -4,10 +4,10 @@ using Simulation;
 
 namespace Agents.AgentUrgentu.InstantAssistants
 {
-	//meta! id="80"
-	public class ZaradenieDoRadu : OSPABA.Action
+	//meta! id="96"
+	public class ZaradenieDoRaduOsetrenie : OSPABA.Action
 	{
-		public ZaradenieDoRadu(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
+		public ZaradenieDoRaduOsetrenie(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
 		}

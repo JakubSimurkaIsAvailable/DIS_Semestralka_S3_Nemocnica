@@ -11,10 +11,10 @@ namespace Simulation
 		public const int PresunPacienta = 1015;
 		public const int PresunPersonalu = 1016;
 		public const int VykonanieVstupnehoVysetrenia = 1008;
-		public const int UvolnenieAmbulancie = 1009;
 		public const int VykonanieOsetrenia = 1010;
 		public const int PridelenieZdrojovOsetrenie = 1013;
 		public const int PridelenieZdrojovVstupneVysetrenie = 1014;
+		public const int UvolnenieAmbulancie = 1017;
 		//meta! tag="end"
 
 		// 1..1000 range reserved for user

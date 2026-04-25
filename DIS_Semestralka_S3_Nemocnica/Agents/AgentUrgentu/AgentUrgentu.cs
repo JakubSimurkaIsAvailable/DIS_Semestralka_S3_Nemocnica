@@ -22,8 +22,9 @@ namespace Agents.AgentUrgentu
 		private void Init()
 		{
 			new ManagerUrgentu(SimId.ManagerUrgentu, MySim, this);
-			new ZaradenieDoRadu(SimId.ZaradenieDoRadu, MySim, this);
-			AddOwnMessage(Mc.VysetreniePacienta);
+			new ZaradenieDoRaduVstupneVysetrenie(SimId.ZaradenieDoRaduVstupneVysetrenie, MySim, this);
+			new ZaradenieDoRaduOsetrenie(SimId.ZaradenieDoRaduOsetrenie, MySim, this);
+            AddOwnMessage(Mc.VysetreniePacienta);
 			AddOwnMessage(Mc.VykonanieVstupnehoVysetrenia);
 			AddOwnMessage(Mc.PresunPacienta);
 			AddOwnMessage(Mc.PridelenieZdrojovVstupneVysetrenie);
