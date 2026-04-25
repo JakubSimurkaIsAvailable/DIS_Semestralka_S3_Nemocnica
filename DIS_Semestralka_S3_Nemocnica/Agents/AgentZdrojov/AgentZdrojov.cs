@@ -12,7 +12,8 @@ namespace Agents.AgentZdrojov
 		public int VolneMiestnostiA { get; set; } = 5;
 		public int VolneMiestnostiB { get; set; } = 7;
 
-		public Queue<MyMessage> PendingVstupneVysetrenie { get; } = new();
+		// klic: (0=sanitka/1=regular, PacientId) → sanitka vzdy pred regular, v ramci skupiny FIFO
+		public PriorityQueue<MyMessage, (int, int)> PendingVstupneVysetrenie { get; } = new();
 		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> PendingOsetrenie { get; } = new();
 
 		public AgentZdrojov(int id, OSPABA.Simulation mySim, Agent parent) :

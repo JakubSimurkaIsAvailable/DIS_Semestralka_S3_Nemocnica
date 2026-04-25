@@ -25,7 +25,9 @@ namespace Agents.AgentZdrojov
 		//meta! sender="AgentUrgentu", id="28", type="Request"
 		public void ProcessPridelenieZdrojovVstupneVysetrenie(MessageForm message)
 		{
-			MyAgent.PendingVstupneVysetrenie.Enqueue((MyMessage)message);
+			var msg = (MyMessage)message;
+			int skupinaKey = msg.PrisielSanitkou ? 0 : 1;
+			MyAgent.PendingVstupneVysetrenie.Enqueue(msg, (skupinaKey, msg.PacientId));
 			SkusSpustitVstupneVysetrenie();
 		}
 
@@ -45,6 +47,7 @@ namespace Agents.AgentZdrojov
 			case Mc.UvolnenieZdrojovVstupneVysetrenie:
 				MyAgent.VolneSestry++;
 				MyAgent.VolneMiestnostiB++;
+				SkusSpustitOsetrenie();
 				SkusSpustitVstupneVysetrenie();
 				break;
 
@@ -55,6 +58,7 @@ namespace Agents.AgentZdrojov
 				if (msg.PouzilaMiestnostA) MyAgent.VolneMiestnostiA++;
 				else MyAgent.VolneMiestnostiB++;
 				SkusSpustitOsetrenie();
+				SkusSpustitVstupneVysetrenie();
 				break;
 			}
 		}
