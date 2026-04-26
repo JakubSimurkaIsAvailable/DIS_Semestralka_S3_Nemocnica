@@ -7,6 +7,8 @@ namespace Agents.AgentUrgentu
 	//meta! id="3"
 	public class ManagerUrgentu : OSPABA.Manager
 	{
+		private MySimulation Sim => (MySimulation)MySim;
+
 		public ManagerUrgentu(int id, OSPABA.Simulation mySim, Agent myAgent) :
 			base(id, mySim, myAgent)
 		{
@@ -26,6 +28,7 @@ namespace Agents.AgentUrgentu
 		//meta! sender="AgentModelu", id="8", type="Request"
 		public void ProcessVysetreniePacienta(MessageForm message)
 		{
+			Sim.AktualizujStavPacienta(((MyMessage)message).PacientId, "Presun na VV");
 			message.Code = Mc.PresunPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
@@ -42,6 +45,7 @@ namespace Agents.AgentUrgentu
 			}
 			else
 			{
+				Sim.AktualizujStavPacienta(msg.PacientId, "Čaká na VV");
 				((ZaradenieDoRaduVstupneVysetrenie)MyAgent.FindAssistant(SimId.ZaradenieDoRaduVstupneVysetrenie)).Execute(message);
 				message.Code = Mc.PridelenieZdrojovVstupneVysetrenie;
 				message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
@@ -52,6 +56,7 @@ namespace Agents.AgentUrgentu
 		//meta! sender="AgentZdrojov", id="28", type="Response"
 		public void ProcessPridelenieZdrojovVstupneVysetrenie(MessageForm message)
 		{
+			Sim.AktualizujStavPacienta(((MyMessage)message).PacientId, "Presun sestry");
 			message.Code = Mc.PresunPersonalu;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
@@ -60,13 +65,16 @@ namespace Agents.AgentUrgentu
 		//meta! sender="AgentPresunov", id="78", type="Response"
 		public void ProcessPresunPersonalu(MessageForm message)
 		{
-			if (((MyMessage)message).JePresunNaOsetrenie)
+			var msg = (MyMessage)message;
+			if (msg.JePresunNaOsetrenie)
 			{
+				Sim.AktualizujStavPacienta(msg.PacientId, "Ošetrenie prebieha");
 				message.Code = Mc.VykonanieOsetrenia;
 				message.Addressee = MySim.FindAgent(SimId.AgentOsetrenia);
 			}
 			else
 			{
+				Sim.AktualizujStavPacienta(msg.PacientId, "VV prebieha");
 				message.Code = Mc.VykonanieVstupnehoVysetrenia;
 				message.Addressee = MySim.FindAgent(SimId.AgentVstupnehoVysetrenia);
 			}
@@ -76,6 +84,10 @@ namespace Agents.AgentUrgentu
 		//meta! sender="AgentVstupnehoVysetrenia", id="22", type="Response"
 		public void ProcessVykonanieVstupnehoVysetrenia(MessageForm message)
 		{
+			var msg = (MyMessage)message;
+			Sim.AktualizujPriorituPacienta(msg.PacientId, msg.Priorita);
+			Sim.AktualizujStavPacienta(msg.PacientId, "Čaká na ošetrenie");
+
 			var release = new MyMessage(MySim)
 			{
 				Code = Mc.UvolnenieZdrojovVstupneVysetrenie,
@@ -84,7 +96,7 @@ namespace Agents.AgentUrgentu
 			Notice(release);
 
 			((ZaradenieDoRaduOsetrenie)MyAgent.FindAssistant(SimId.ZaradenieDoRaduOsetrenie)).Execute(message);
-			((MyMessage)message).JePresunNaOsetrenie = true;
+			msg.JePresunNaOsetrenie = true;
 			message.Code = Mc.PridelenieZdrojovOsetrenie;
 			message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
 			Request(message);
@@ -93,6 +105,7 @@ namespace Agents.AgentUrgentu
 		//meta! sender="AgentZdrojov", id="27", type="Response"
 		public void ProcessPridelenieZdrojovOsetrenie(MessageForm message)
 		{
+			Sim.AktualizujStavPacienta(((MyMessage)message).PacientId, "Presun personálu");
 			message.Code = Mc.PresunPersonalu;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
@@ -101,15 +114,18 @@ namespace Agents.AgentUrgentu
 		//meta! sender="AgentOsetrenia", id="24", type="Response"
 		public void ProcessVykonanieOsetrenia(MessageForm message)
 		{
+			var msg = (MyMessage)message;
+			Sim.AktualizujStavPacienta(msg.PacientId, "Odchod");
+
 			var release = new MyMessage(MySim)
 			{
-				PouzilaMiestnostA = ((MyMessage)message).PouzilaMiestnostA,
+				PouzilaMiestnostA = msg.PouzilaMiestnostA,
 				Code = Mc.UvolnenieZdrojovOsetrenie,
 				Addressee = MySim.FindAgent(SimId.AgentZdrojov)
 			};
 			Notice(release);
 
-			((MyMessage)message).JeOdchod = true;
+			msg.JeOdchod = true;
 			message.Code = Mc.PresunPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);

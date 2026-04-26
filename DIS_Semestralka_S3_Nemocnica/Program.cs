@@ -1,14 +1,5 @@
-using Simulation;
+using System.Windows.Forms;
 
-Console.WriteLine("Spustam simulaciu...");
-try
-{
-    var sim = new MySimulation();
-    Console.WriteLine("Simulacia vytvorena, spustam replikaciu...");
-    sim.Simulate(1, 8 * 3600.0);
-    Console.WriteLine("Simulacia dokoncena.");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"CHYBA: {ex}");
-}
+Application.EnableVisualStyles();
+Application.SetCompatibleTextRenderingDefault(false);
+Application.Run(new DIS_Semestralka_S3_Nemocnica.Form1());

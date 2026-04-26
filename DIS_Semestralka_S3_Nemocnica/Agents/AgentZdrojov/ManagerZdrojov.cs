@@ -28,6 +28,7 @@ namespace Agents.AgentZdrojov
 			var msg = (MyMessage)message;
 			int skupinaKey = msg.PrisielSanitkou ? 0 : 1;
 			MyAgent.PendingVstupneVysetrenie.Enqueue(msg, (skupinaKey, msg.PacientId));
+			MyAgent.RadVVIds.Add(msg.PacientId);
 			SkusSpustitVstupneVysetrenie();
 		}
 
@@ -36,6 +37,7 @@ namespace Agents.AgentZdrojov
 		{
 			var msg = (MyMessage)message;
 			MyAgent.PendingOsetrenie.Enqueue(msg, (msg.Priorita, msg.PacientId));
+			MyAgent.RadOsetreniaItems.Add((msg.PacientId, msg.Priorita));
 			SkusSpustitOsetrenie();
 		}
 
@@ -72,7 +74,9 @@ namespace Agents.AgentZdrojov
 
 			MyAgent.VolneSestry--;
 			MyAgent.VolneMiestnostiB--;
-			Response(MyAgent.PendingVstupneVysetrenie.Dequeue());
+			var spusteny = MyAgent.PendingVstupneVysetrenie.Dequeue();
+			MyAgent.RadVVIds.Remove(spusteny.PacientId);
+			Response(spusteny);
 		}
 
 		private void SkusSpustitOsetrenie()
@@ -103,6 +107,7 @@ namespace Agents.AgentZdrojov
 			}
 
 			MyAgent.PendingOsetrenie.Dequeue();
+			MyAgent.RadOsetreniaItems.RemoveAll(x => x.Id == pacient.PacientId);
 			MyAgent.VolneLekari--;
 			MyAgent.VolneSestry--;
 			if (pouzijA) MyAgent.VolneMiestnostiA--;

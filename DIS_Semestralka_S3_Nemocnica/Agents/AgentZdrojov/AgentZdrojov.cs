@@ -7,14 +7,22 @@ namespace Agents.AgentZdrojov
 	//meta! id="12"
 	public class AgentZdrojov : OSPABA.Agent
 	{
-		public int VolneSestry { get; set; } = 3;   // TODO: vstupny parameter
-		public int VolneLekari { get; set; } = 2;   // TODO: vstupny parameter
-		public int VolneMiestnostiA { get; set; } = 5;
-		public int VolneMiestnostiB { get; set; } = 7;
+		public const int TotalSestry = 3;
+		public const int TotalLekari = 2;
+		public const int TotalMiestnostiA = 5;
+		public const int TotalMiestnostiB = 7;
+
+		public int VolneSestry { get; set; } = TotalSestry;
+		public int VolneLekari { get; set; } = TotalLekari;
+		public int VolneMiestnostiA { get; set; } = TotalMiestnostiA;
+		public int VolneMiestnostiB { get; set; } = TotalMiestnostiB;
 
 		// klic: (0=sanitka/1=regular, PacientId) → sanitka vzdy pred regular, v ramci skupiny FIFO
 		public PriorityQueue<MyMessage, (int, int)> PendingVstupneVysetrenie { get; } = new();
 		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> PendingOsetrenie { get; } = new();
+
+		public List<int> RadVVIds { get; } = new();
+		public List<(int Id, int Priorita)> RadOsetreniaItems { get; } = new();
 
 		public AgentZdrojov(int id, OSPABA.Simulation mySim, Agent parent) :
 			base(id, mySim, parent)
@@ -25,12 +33,14 @@ namespace Agents.AgentZdrojov
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			VolneSestry = 3;     // TODO: vstupny parameter
-			VolneLekari = 2;     // TODO: vstupny parameter
-			VolneMiestnostiA = 5;
-			VolneMiestnostiB = 7;
+			VolneSestry = TotalSestry;
+			VolneLekari = TotalLekari;
+			VolneMiestnostiA = TotalMiestnostiA;
+			VolneMiestnostiB = TotalMiestnostiB;
 			PendingVstupneVysetrenie.Clear();
 			PendingOsetrenie.Clear();
+			RadVVIds.Clear();
+			RadOsetreniaItems.Clear();
 		}
 
 		//meta! userInfo="Generated code: do not modify", tag="begin"

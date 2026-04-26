@@ -23,11 +23,14 @@ namespace Agents.AgentModelu
 			}
 		}
 
+		private MySimulation Sim => (MySimulation)MySim;
+
 		//meta! sender="AgentUrgentu", id="8", type="Response"
 		public void ProcessVysetreniePacienta(MessageForm message)
 		{
 			var msg = (MyMessage)message;
 			Console.WriteLine($"[{Cas()}] Pacient #{msg.PacientId} opustil urgent");
+			Sim.Pacienti.TryRemove(msg.PacientId, out _);
 			message.Code = Mc.OdchodPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentOkolia);
 			Notice(message);

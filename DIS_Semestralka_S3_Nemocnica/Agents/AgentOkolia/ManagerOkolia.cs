@@ -28,6 +28,13 @@ namespace Agents.AgentOkolia
 		{
 			var msg = (MyMessage)message;
 			Console.WriteLine($"[{Cas()}] Pacient #{msg.PacientId} prisiel SANITKOU");
+			((MySimulation)MySim).Pacienti[msg.PacientId] = new PacientInfo
+			{
+				Id = msg.PacientId,
+				PrisielSanitkou = true,
+				CasPrichodu = MySim.CurrentTime,
+				Stav = "Presun"
+			};
 			message.Code = Mc.PrichodPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentModelu);
 			Notice(message);
@@ -38,6 +45,13 @@ namespace Agents.AgentOkolia
 		{
 			var msg = (MyMessage)message;
 			Console.WriteLine($"[{Cas()}] Pacient #{msg.PacientId} prisiel samostatne");
+			((MySimulation)MySim).Pacienti[msg.PacientId] = new PacientInfo
+			{
+				Id = msg.PacientId,
+				PrisielSanitkou = false,
+				CasPrichodu = MySim.CurrentTime,
+				Stav = "Presun"
+			};
 			message.Code = Mc.PrichodPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentModelu);
             Notice(message);

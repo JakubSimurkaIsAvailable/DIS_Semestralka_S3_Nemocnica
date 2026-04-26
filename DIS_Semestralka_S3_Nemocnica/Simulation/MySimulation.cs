@@ -1,45 +1,50 @@
-using Agents.AgentOkolia;
-using OSPABA;
 using Agents.AgentModelu;
-using Agents.AgentUrgentu;
+using Agents.AgentOkolia;
+using Agents.AgentOsetrenia;
 using Agents.AgentPresunov;
+using Agents.AgentUrgentu;
 using Agents.AgentVstupnehoVysetrenia;
 using Agents.AgentZdrojov;
-using Agents.AgentOsetrenia;
+using System.Collections.Concurrent;
 
 namespace Simulation
 {
 	public class MySimulation : OSPABA.Simulation
 	{
-		public Random SeedRandom { get; } = new Random();
+		public Random SeedRandom { get; private set; } = new Random();
+
+		public ConcurrentDictionary<int, PacientInfo> Pacienti { get; } = new();
+		public volatile bool Zastavit;
+
+		public void NastavSeed(int seed) => SeedRandom = new Random(seed);
+		public void NastavNahodny() => SeedRandom = new Random();
+
+		public void AktualizujStavPacienta(int id, string stav)
+		{
+			if (Pacienti.TryGetValue(id, out var info))
+				info.Stav = stav;
+		}
+
+		public void AktualizujPriorituPacienta(int id, int priorita)
+		{
+			if (Pacienti.TryGetValue(id, out var info))
+				info.Priorita = priorita;
+		}
 
 		public MySimulation()
 		{
 			Init();
 		}
 
-		override public void PrepareSimulation()
-		{
-			base.PrepareSimulation();
-			// Create global statistcis
-		}
-
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			// Reset entities, queues, local statistics, etc...
-		}
-
-		override public void ReplicationFinished()
-		{
-			// Collect local statistics into global, update UI, etc...
-			base.ReplicationFinished();
-		}
-
-		override public void SimulationFinished()
-		{
-			// Display simulation results
-			base.SimulationFinished();
+			if (Zastavit)
+			{
+				StopSimulation();
+				return;
+			}
+			Pacienti.Clear();
 		}
 
 		//meta! userInfo="Generated code: do not modify", tag="begin"
@@ -53,20 +58,13 @@ namespace Simulation
 			AgentOsetrenia = new AgentOsetrenia(SimId.AgentOsetrenia, this, AgentUrgentu);
 			AgentZdrojov = new AgentZdrojov(SimId.AgentZdrojov, this, AgentUrgentu);
 		}
-		public AgentModelu AgentModelu
-		{ get; set; }
-		public AgentOkolia AgentOkolia
-		{ get; set; }
-		public AgentUrgentu AgentUrgentu
-		{ get; set; }
-		public AgentPresunov AgentPresunov
-		{ get; set; }
-		public AgentVstupnehoVysetrenia AgentVstupnehoVysetrenia
-		{ get; set; }
-		public AgentOsetrenia AgentOsetrenia
-		{ get; set; }
-		public AgentZdrojov AgentZdrojov
-		{ get; set; }
+		public AgentModelu AgentModelu { get; set; } = null!;
+		public AgentOkolia AgentOkolia { get; set; } = null!;
+		public AgentUrgentu AgentUrgentu { get; set; } = null!;
+		public AgentPresunov AgentPresunov { get; set; } = null!;
+		public AgentVstupnehoVysetrenia AgentVstupnehoVysetrenia { get; set; } = null!;
+		public AgentOsetrenia AgentOsetrenia { get; set; } = null!;
+		public AgentZdrojov AgentZdrojov { get; set; } = null!;
 		//meta! tag="end"
 	}
 }
