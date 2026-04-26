@@ -1,4 +1,5 @@
 using Agents.AgentOkolia;
+using DIS_Semestralka_S3_Nemocnica.Generators;
 using OSPABA;
 using Simulation;
 
@@ -7,10 +8,12 @@ namespace Agents.AgentOkolia.ContinualAssistants
 	//meta! id="56"
 	public class PrichodPacientaSanitka : OSPABA.Scheduler
 	{
-		private OSPRNG.ErlangRNG erlang = new OSPRNG.ErlangRNG(67.5, 4.37 * 4.37);
+		private GammaGenerator _gamma;
+
         public PrichodPacientaSanitka(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
+			_gamma = new GammaGenerator(((MySimulation)mySim).SeedRandom, 67.5, 4.37);
 		}
 
 		override public void PrepareReplication()
@@ -65,7 +68,7 @@ namespace Agents.AgentOkolia.ContinualAssistants
 
 		private double VygenerujCas()
 		{
-			return 56 + erlang.Sample();
+			return 56 + _gamma.Generate();
         }
     }
 }

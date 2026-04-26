@@ -1,27 +1,26 @@
+using DIS_Semestralka_S3_Nemocnica.Generators;
+using DIS_Semestralka_S3_Nemocnica.Generators.Components;
 using OSPABA;
 using Simulation;
 using Agents.AgentVstupnehoVysetrenia;
-using OSPRNG;
 
 namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 {
 	//meta! id="38"
 	public class ProcessVstupneVysetrenie : OSPABA.Process
 	{
-        //prisiel sam dlzka trvania vstupneho vysetrenia
-        private static readonly OSPRNG.EmpiricPair<double>[] _sam = {
-			new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(3 * 60, 5 * 60), 0.6),
-			new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(5 * 60, 9 * 60), 0.4)
-		};
+		private SpojityEmpirickyGenerator empiricRNG;
+		private RozdelenieDiskretne discreteRNG;
 
-        private OSPRNG.EmpiricRNG<double> empiricRNG = new OSPRNG.EmpiricRNG<double>(_sam);
-		//--------------------------
-
-		//prisiel sanitkou dlzka trvania vstupneho vysetrenia
-		private static readonly OSPRNG.UniformDiscreteRNG discreteRNG = new OSPRNG.UniformDiscreteRNG(4, 8);
         public ProcessVstupneVysetrenie(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
+			var seed = ((MySimulation)mySim).SeedRandom;
+			empiricRNG = new SpojityEmpirickyGenerator(seed,
+				new List<double> { 3 * 60, 5 * 60 },
+				new List<double> { 5 * 60, 9 * 60 },
+				new List<double> { 0.6, 0.4 });
+			discreteRNG = new RozdelenieDiskretne(seed, 4, 8);
 		}
 
 		private HashSet<int> _active = new HashSet<int>();
@@ -44,8 +43,8 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 			}
 			_active.Add(msg.PacientId);
 			double trvanie = msg.PrisielSanitkou
-				? discreteRNG.Sample()
-				: empiricRNG.Sample();
+				? discreteRNG.Generate()
+				: empiricRNG.Generate();
 			Hold(trvanie, message);
 		}
 

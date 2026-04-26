@@ -11,6 +11,8 @@ namespace Simulation
 {
 	public class MySimulation : OSPABA.Simulation
 	{
+		public Random SeedRandom { get; } = new Random();
+
 		public MySimulation()
 		{
 			Init();

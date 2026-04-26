@@ -1,19 +1,25 @@
+using DIS_Semestralka_S3_Nemocnica.Generators;
+using DIS_Semestralka_S3_Nemocnica.Generators.Components;
 using OSPABA;
 using Agents.AgentPresunov;
 using Simulation;
-using OSPRNG;
 
 namespace Agents.AgentPresunov.ContinualAssistants
 {
 	//meta! id="73"
 	public class ProcessPresunutiaPacienta : OSPABA.Process
 	{
-		private OSPRNG.TriangularRNG _prichodSamostatne = new OSPRNG.TriangularRNG(120, 150, 300);
-		private OSPRNG.UniformContinuousRNG _prichodSanitka = new OSPRNG.UniformContinuousRNG(90, 200);
-		private OSPRNG.UniformContinuousRNG _odchod = new OSPRNG.UniformContinuousRNG(150, 240);
+		private TrojuholnikovyGenerator _prichodSamostatne;
+		private RozdelenieSpojite _prichodSanitka;
+		private RozdelenieSpojite _odchod;
+
         public ProcessPresunutiaPacienta(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
+			var seed = ((MySimulation)mySim).SeedRandom;
+			_prichodSamostatne = new TrojuholnikovyGenerator(seed, 120, 150, 300);
+			_prichodSanitka = new RozdelenieSpojite(seed, 90, 200);
+			_odchod = new RozdelenieSpojite(seed, 150, 240);
 		}
 
 		private HashSet<int> _active = new HashSet<int>();
@@ -35,10 +41,10 @@ namespace Agents.AgentPresunov.ContinualAssistants
 				return;
 			}
 			_active.Add(msg.PacientId);
-			RNG<double> rng = msg.JeOdchod ? _odchod
-				: msg.PrisielSanitkou ? (RNG<double>)_prichodSanitka
-				: _prichodSamostatne;
-			Hold(rng.Sample(), message);
+			double cas = msg.JeOdchod ? _odchod.Generate()
+				: msg.PrisielSanitkou ? _prichodSanitka.Generate()
+				: _prichodSamostatne.Generate();
+			Hold(cas, message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"

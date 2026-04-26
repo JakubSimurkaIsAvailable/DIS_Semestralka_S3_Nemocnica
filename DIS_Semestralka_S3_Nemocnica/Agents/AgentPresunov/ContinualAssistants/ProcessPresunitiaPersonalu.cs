@@ -1,3 +1,4 @@
+using DIS_Semestralka_S3_Nemocnica.Generators;
 using OSPABA;
 using Agents.AgentPresunov;
 using Simulation;
@@ -7,14 +8,15 @@ namespace Agents.AgentPresunov.ContinualAssistants
 	//meta! id="75"
 	public class ProcessPresunitiaPersonalu : OSPABA.Process
 	{
+		// TODO: doplnit spravne rozdelenie pre cas presunu personalu
+		private TrojuholnikovyGenerator _presunPersonalu;
+		private HashSet<int> _active = new HashSet<int>();
+
 		public ProcessPresunitiaPersonalu(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
+			_presunPersonalu = new TrojuholnikovyGenerator(((MySimulation)mySim).SeedRandom, 15, 20, 45);
 		}
-
-		// TODO: doplnit spravne rozdelenie pre cas presunu personalu
-		private OSPRNG.TriangularRNG _presunPersonalu = new OSPRNG.TriangularRNG(15, 20, 45);
-		private HashSet<int> _active = new HashSet<int>();
 
 		override public void PrepareReplication()
 		{
@@ -34,8 +36,8 @@ namespace Agents.AgentPresunov.ContinualAssistants
 			}
 			_active.Add(msg.PacientId);
 			double cas = msg.JePresunNaOsetrenie
-				? Math.Max(_presunPersonalu.Sample(), _presunPersonalu.Sample())
-				: _presunPersonalu.Sample();
+				? Math.Max(_presunPersonalu.Generate(), _presunPersonalu.Generate())
+				: _presunPersonalu.Generate();
 			Hold(cas, message);
 		}
 

@@ -1,3 +1,5 @@
+using DIS_Semestralka_S3_Nemocnica.Generators;
+using DIS_Semestralka_S3_Nemocnica.Generators.Components;
 using OSPABA;
 using Simulation;
 using Agents.AgentOsetrenia;
@@ -7,20 +9,21 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
 	//meta! id="40"
 	public class ProcessOsetrenie : OSPABA.Process
 	{
+		// TODO: doplnit spravne rozdelenia podla priority pacienta
+		private SpojityEmpirickyGenerator _samRNG;
+		private RozdelenieSpojite _sanitkaRNG;
+		private HashSet<int> _active = new HashSet<int>();
+
 		public ProcessOsetrenie(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
+			var seed = ((MySimulation)mySim).SeedRandom;
+			_samRNG = new SpojityEmpirickyGenerator(seed,
+				new List<double> { 10 * 60, 12 * 60, 14 * 60 },
+				new List<double> { 12 * 60, 14 * 60, 18 * 60 },
+				new List<double> { 0.1, 0.6, 0.3 });
+			_sanitkaRNG = new RozdelenieSpojite(seed, 15 * 60, 30 * 60);
 		}
-
-		// TODO: doplnit spravne rozdelenia podla priority pacienta
-        private static readonly OSPRNG.EmpiricPair<double>[] _sam = {
-            new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(10 * 60, 12 * 60), 0.1),
-            new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(12 * 60, 14 * 60), 0.6),
-			new OSPRNG.EmpiricPair<double>(new OSPRNG.UniformContinuousRNG(14 * 60, 18 * 60), 0.3)
-        };
-		private static readonly OSPRNG.EmpiricRNG<double> _samRNG = new OSPRNG.EmpiricRNG<double>(_sam);
-        private static readonly OSPRNG.UniformContinuousRNG _sanitkaRNG = new OSPRNG.UniformContinuousRNG(15 * 60, 30 * 60);
-		private HashSet<int> _active = new HashSet<int>();
 
 		override public void PrepareReplication()
 		{
@@ -39,8 +42,8 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
 				return;
 			}
 			_active.Add(msg.PacientId);
-			OSPRNG.RNG<double> rng = msg.PrisielSanitkou ? (OSPRNG.RNG<double>)_sanitkaRNG : _samRNG;
-			Hold(rng.Sample(), message);
+			double cas = msg.PrisielSanitkou ? _sanitkaRNG.Generate() : _samRNG.Generate();
+			Hold(cas, message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"
