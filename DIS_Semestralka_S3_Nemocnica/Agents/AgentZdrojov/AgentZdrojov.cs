@@ -40,15 +40,16 @@ namespace Agents.AgentZdrojov
 		//meta! userInfo="Generated code: do not modify", tag="begin"
 		private void Init()
 		{
-			new ManagerZdrojov(SimId.ManagerZdrojov, MySim, this);
-			new PriradenieZdrojovPreOsetrenie(SimId.PriradenieZdrojovPreOsetrenie, MySim, this);
-			new PriradenieZdrojovPreVstupneVysetrenie(SimId.PriradenieZdrojovPreVstupneVysetrenie, MySim, this);
-			new UvolnenieZdrojov(SimId.UvolnenieZdrojov, MySim, this);
-			AddOwnMessage(Mc.PridelenieZdrojovVstupneVysetrenie);
-			AddOwnMessage(Mc.PridelenieZdrojovOsetrenie);
-			AddOwnMessage(Mc.UvolnenieZdrojovVstupneVysetrenie);
-			AddOwnMessage(Mc.UvolnenieZdrojovOsetrenie);
-		}
+            new ManagerZdrojov(SimId.ManagerZdrojov, MySim, this);
+            new ZaradenieDoRaduVstupneVysetrenie(SimId.ZaradenieDoRaduVstupneVysetrenie, MySim, this);
+            new UvolnenieZdrojov(SimId.UvolnenieZdrojov, MySim, this);
+            new ZaradenieDoRaduOsetrenie(SimId.ZaradenieDoRaduOsetrenie, MySim, this);
+            new PriradenieZdrojovPreOsetrenie(SimId.PriradenieZdrojovPreOsetrenie, MySim, this);
+            new PriradenieZdrojovPreVstupneVysetrenie(SimId.PriradenieZdrojovPreVstupneVysetrenie, MySim, this);
+            AddOwnMessage(Mc.UvolnenieAmbulancie);
+            AddOwnMessage(Mc.ZaradenieDoRaduOsetrenie);
+            AddOwnMessage(Mc.ZaradenieDoRaduVV);
+        }
 		//meta! tag="end"
 	}
 }

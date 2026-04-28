@@ -1,6 +1,5 @@
 using OSPABA;
 using Simulation;
-using Agents.AgentUrgentu.InstantAssistants;
 using AgentZdrojovType = Agents.AgentZdrojov.AgentZdrojov;
 
 namespace Agents.AgentUrgentu
@@ -26,8 +25,18 @@ namespace Agents.AgentUrgentu
 			}
 		}
 
-		//meta! sender="AgentModelu", id="8", type="Request"
-		public void ProcessVysetreniePacienta(MessageForm message)
+        //meta! sender="AgentZdrojov", id="130", type="Notice"
+        public void ProcessZdrojePrideleneOsetrenie(MessageForm message)
+        {
+        }
+
+        //meta! sender="AgentZdrojov", id="129", type="Notice"
+        public void ProcessZdrojePrideleneVV(MessageForm message)
+        {
+        }
+
+        //meta! sender="AgentModelu", id="8", type="Request"
+        public void ProcessVysetreniePacienta(MessageForm message)
 		{
 			Sim.AktualizujStavPacienta(((MyMessage)message).PacientId, "Presun na VV");
 			message.Code = Mc.PresunPacienta;
@@ -199,45 +208,45 @@ namespace Agents.AgentUrgentu
 		{
 		}
 
-		override public void ProcessMessage(MessageForm message)
-		{
-			switch (message.Code)
-			{
-			case Mc.PridelenieZdrojovVstupneVysetrenie:
-				ProcessPridelenieZdrojovVstupneVysetrenie(message);
-			break;
+        override public void ProcessMessage(MessageForm message)
+        {
+            switch (message.Code)
+            {
+                case Mc.ZdrojePrideleneOsetrenie:
+                    ProcessZdrojePrideleneOsetrenie(message);
+                    break;
 
-			case Mc.PresunPersonalu:
-				ProcessPresunPersonalu(message);
-			break;
+                case Mc.PresunPacienta:
+                    ProcessPresunPacienta(message);
+                    break;
 
-			case Mc.VysetreniePacienta:
-				ProcessVysetreniePacienta(message);
-			break;
+                case Mc.ZdrojePrideleneVV:
+                    ProcessZdrojePrideleneVV(message);
+                    break;
 
-			case Mc.VykonanieVstupnehoVysetrenia:
-				ProcessVykonanieVstupnehoVysetrenia(message);
-			break;
+                case Mc.VysetreniePacienta:
+                    ProcessVysetreniePacienta(message);
+                    break;
 
-			case Mc.PridelenieZdrojovOsetrenie:
-				ProcessPridelenieZdrojovOsetrenie(message);
-			break;
+                case Mc.VykonanieVstupnehoVysetrenia:
+                    ProcessVykonanieVstupnehoVysetrenia(message);
+                    break;
 
-			case Mc.VykonanieOsetrenia:
-				ProcessVykonanieOsetrenia(message);
-			break;
+                case Mc.PresunPersonalu:
+                    ProcessPresunPersonalu(message);
+                    break;
 
-			case Mc.PresunPacienta:
-				ProcessPresunPacienta(message);
-			break;
+                case Mc.VykonanieOsetrenia:
+                    ProcessVykonanieOsetrenia(message);
+                    break;
 
-			default:
-				ProcessDefault(message);
-			break;
-			}
-		}
-		//meta! tag="end"
-		public new AgentUrgentu MyAgent
+                default:
+                    ProcessDefault(message);
+                    break;
+            }
+        }
+        //meta! tag="end"
+        public new AgentUrgentu MyAgent
 		{
 			get
 			{

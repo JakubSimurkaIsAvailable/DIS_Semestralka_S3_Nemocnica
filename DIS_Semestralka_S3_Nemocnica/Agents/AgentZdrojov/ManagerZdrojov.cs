@@ -56,30 +56,44 @@ namespace Agents.AgentZdrojov
 		{
 		}
 
-		override public void ProcessMessage(MessageForm message)
-		{
-			switch (message.Code)
-			{
-			case Mc.PridelenieZdrojovVstupneVysetrenie:
-				ProcessPridelenieZdrojovVstupneVysetrenie(message);
-			break;
+        //meta! sender="AgentUrgentu", id="98", type="Notice"
+        public void ProcessUvolnenieAmbulancie(MessageForm message)
+        {
+        }
 
-			case Mc.PridelenieZdrojovOsetrenie:
-				ProcessPridelenieZdrojovOsetrenie(message);
-			break;
+        //meta! sender="AgentUrgentu", id="128", type="Notice"
+        public void ProcessZaradenieDoRaduOsetrenie(MessageForm message)
+        {
+        }
 
-			case Mc.UvolnenieZdrojovVstupneVysetrenie:
-			case Mc.UvolnenieZdrojovOsetrenie:
-				ProcessUvolnenieZdrojov(message);
-			break;
+        //meta! sender="AgentUrgentu", id="127", type="Notice"
+        public void ProcessZaradenieDoRaduVV(MessageForm message)
+        {
+        }
 
-			default:
-				ProcessDefault(message);
-			break;
-			}
-		}
-		//meta! tag="end"
-		public new AgentZdrojov MyAgent
+        override public void ProcessMessage(MessageForm message)
+        {
+            switch (message.Code)
+            {
+                case Mc.UvolnenieAmbulancie:
+                    ProcessUvolnenieAmbulancie(message);
+                    break;
+
+                case Mc.ZaradenieDoRaduOsetrenie:
+                    ProcessZaradenieDoRaduOsetrenie(message);
+                    break;
+
+                case Mc.ZaradenieDoRaduVV:
+                    ProcessZaradenieDoRaduVV(message);
+                    break;
+
+                default:
+                    ProcessDefault(message);
+                    break;
+            }
+        }
+        //meta! tag="end"
+        public new AgentZdrojov MyAgent
 		{
 			get
 			{

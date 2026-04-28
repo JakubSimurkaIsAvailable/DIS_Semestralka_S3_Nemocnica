@@ -33,16 +33,14 @@ namespace Agents.AgentUrgentu
 		private void Init()
 		{
 			new ManagerUrgentu(SimId.ManagerUrgentu, MySim, this);
-			new ZaradenieDoRaduVstupneVysetrenie(SimId.ZaradenieDoRaduVstupneVysetrenie, MySim, this);
-			new ZaradenieDoRaduOsetrenie(SimId.ZaradenieDoRaduOsetrenie, MySim, this);
+            AddOwnMessage(Mc.PresunPacienta);
             AddOwnMessage(Mc.VysetreniePacienta);
-			AddOwnMessage(Mc.VykonanieVstupnehoVysetrenia);
-			AddOwnMessage(Mc.PresunPacienta);
-			AddOwnMessage(Mc.PridelenieZdrojovVstupneVysetrenie);
-			AddOwnMessage(Mc.VykonanieOsetrenia);
-			AddOwnMessage(Mc.PresunPersonalu);
-			AddOwnMessage(Mc.PridelenieZdrojovOsetrenie);
-		}
+            AddOwnMessage(Mc.VykonanieVstupnehoVysetrenia);
+            AddOwnMessage(Mc.ZdrojePrideleneOsetrenie);
+            AddOwnMessage(Mc.ZdrojePrideleneVV);
+            AddOwnMessage(Mc.VykonanieOsetrenia);
+            AddOwnMessage(Mc.PresunPersonalu);
+        }
 		//meta! tag="end"
 	}
 }
