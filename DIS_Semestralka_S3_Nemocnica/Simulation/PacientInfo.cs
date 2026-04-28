@@ -7,5 +7,6 @@ namespace Simulation
         public int Priorita { get; set; }
         public string Stav { get; set; } = "Príchod";
         public double CasPrichodu { get; set; }
+        public bool PouzilaMiestnostA { get; set; }
     }
 }

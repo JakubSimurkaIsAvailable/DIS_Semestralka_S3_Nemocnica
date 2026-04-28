@@ -1,6 +1,7 @@
 using OSPABA;
 using Simulation;
 using Agents.AgentUrgentu.InstantAssistants;
+using AgentZdrojovType = Agents.AgentZdrojov.AgentZdrojov;
 
 namespace Agents.AgentUrgentu
 {
@@ -47,9 +48,7 @@ namespace Agents.AgentUrgentu
 			{
 				Sim.AktualizujStavPacienta(msg.PacientId, "Čaká na VV");
 				((ZaradenieDoRaduVstupneVysetrenie)MyAgent.FindAssistant(SimId.ZaradenieDoRaduVstupneVysetrenie)).Execute(message);
-				message.Code = Mc.PridelenieZdrojovVstupneVysetrenie;
-				message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
-				Request(message);
+				SkusSpustitVstupneVysetrenie();
 			}
 		}
 
@@ -88,24 +87,25 @@ namespace Agents.AgentUrgentu
 			Sim.AktualizujPriorituPacienta(msg.PacientId, msg.Priorita);
 			Sim.AktualizujStavPacienta(msg.PacientId, "Čaká na ošetrenie");
 
-			var release = new MyMessage(MySim)
-			{
-				Code = Mc.UvolnenieZdrojovVstupneVysetrenie,
-				Addressee = MySim.FindAgent(SimId.AgentZdrojov)
-			};
-			Notice(release);
+			// Uvoľni VV zdroje priamo a skús spustiť čakajúcich
+			var z = Z;
+			z.VolneSestry++;
+			z.VolneMiestnostiB++;
 
-			((ZaradenieDoRaduOsetrenie)MyAgent.FindAssistant(SimId.ZaradenieDoRaduOsetrenie)).Execute(message);
+			// Zaraď do radu ošetrenia
 			msg.JePresunNaOsetrenie = true;
-			message.Code = Mc.PridelenieZdrojovOsetrenie;
-			message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
-			Request(message);
+			((ZaradenieDoRaduOsetrenie)MyAgent.FindAssistant(SimId.ZaradenieDoRaduOsetrenie)).Execute(message);
+
+			SkusSpustitVstupneVysetrenie();
+			SkusSpustitOsetrenie();
 		}
 
 		//meta! sender="AgentZdrojov", id="27", type="Response"
 		public void ProcessPridelenieZdrojovOsetrenie(MessageForm message)
 		{
-			Sim.AktualizujStavPacienta(((MyMessage)message).PacientId, "Presun personálu");
+			var msg2 = (MyMessage)message;
+			Sim.AktualizujStavPacienta(msg2.PacientId, "Presun personálu");
+			Sim.AktualizujMiestnostPacienta(msg2.PacientId, msg2.PouzilaMiestnostA);
 			message.Code = Mc.PresunPersonalu;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
@@ -117,18 +117,72 @@ namespace Agents.AgentUrgentu
 			var msg = (MyMessage)message;
 			Sim.AktualizujStavPacienta(msg.PacientId, "Odchod");
 
-			var release = new MyMessage(MySim)
-			{
-				PouzilaMiestnostA = msg.PouzilaMiestnostA,
-				Code = Mc.UvolnenieZdrojovOsetrenie,
-				Addressee = MySim.FindAgent(SimId.AgentZdrojov)
-			};
-			Notice(release);
+			// Uvoľni ošetrovacie zdroje priamo a skús spustiť čakajúcich
+			var z = Z;
+			z.VolneLekari++;
+			z.VolneSestry++;
+			if (msg.PouzilaMiestnostA) z.VolneMiestnostiA++;
+			else                       z.VolneMiestnostiB++;
+
+			SkusSpustitVstupneVysetrenie();
+			SkusSpustitOsetrenie();
 
 			msg.JeOdchod = true;
 			message.Code = Mc.PresunPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
+		}
+
+		// ── Dispatch helpers ─────────────────────────────────────────────
+
+		private AgentZdrojovType Z => (AgentZdrojovType)MySim.FindAgent(SimId.AgentZdrojov);
+
+		private void SkusSpustitVstupneVysetrenie()
+		{
+			var z = Z;
+			if (MyAgent.RadVV.Count == 0 || z.VolneSestry == 0 || z.VolneMiestnostiB == 0) return;
+
+			var msg = MyAgent.RadVV.Dequeue();
+			MyAgent.RadVVIds.Remove(msg.PacientId);
+			Sim.LocDobaVV.AddValue(MySim.CurrentTime - msg.CasVstupuDoRadu);
+
+			msg.Code = Mc.PridelenieZdrojovVstupneVysetrenie;
+			msg.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
+			Request(msg);  // AgentZdrojov alokuje zdroje cez PriradenieZdrojovPreVstupneVysetrenie
+		}
+
+		private void SkusSpustitOsetrenie()
+		{
+			var z = Z;
+			if (MyAgent.RadOsetrenie.Count == 0 || z.VolneLekari == 0 || z.VolneSestry == 0) return;
+
+			MyAgent.RadOsetrenie.TryPeek(out var pacient, out _);
+			bool pouzijA;
+			if (pacient!.Priorita <= 2)
+			{
+				if (z.VolneMiestnostiA == 0) return;
+				pouzijA = true;
+			}
+			else if (pacient.Priorita <= 4)
+			{
+				if      (z.VolneMiestnostiB > 0) pouzijA = false;
+				else if (z.VolneMiestnostiA > 0) pouzijA = true;
+				else return;
+			}
+			else
+			{
+				if (z.VolneMiestnostiB == 0) return;
+				pouzijA = false;
+			}
+
+			MyAgent.RadOsetrenie.Dequeue();
+			MyAgent.RadOsetreniaItems.RemoveAll(x => x.Id == pacient.PacientId);
+			Sim.LocDobaOsetrenie.AddValue(MySim.CurrentTime - pacient.CasVstupuDoRadu);
+			pacient.PouzilaMiestnostA = pouzijA;
+
+			pacient.Code = Mc.PridelenieZdrojovOsetrenie;
+			pacient.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
+			Request(pacient);  // AgentZdrojov alokuje zdroje cez PriradenieZdrojovPreOsetrenie
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"

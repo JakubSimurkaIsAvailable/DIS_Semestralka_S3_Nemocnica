@@ -11,6 +11,7 @@ namespace Simulation
 		public bool PouzilaMiestnostA { get; set; }
 		public bool JeOdchod { get; set; }
 		public bool JePresunNaOsetrenie { get; set; }
+		public double CasVstupuDoRadu { get; set; }
 
         public MyMessage(OSPABA.Simulation mySim) :
 			base(mySim)
@@ -38,6 +39,7 @@ namespace Simulation
 			PouzilaMiestnostA = original.PouzilaMiestnostA;
 			JeOdchod = original.JeOdchod;
 			JePresunNaOsetrenie = original.JePresunNaOsetrenie;
+			CasVstupuDoRadu = original.CasVstupuDoRadu;
         }
 	}
 }

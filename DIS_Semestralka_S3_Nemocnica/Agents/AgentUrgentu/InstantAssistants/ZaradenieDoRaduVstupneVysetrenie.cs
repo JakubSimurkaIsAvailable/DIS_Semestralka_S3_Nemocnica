@@ -14,6 +14,11 @@ namespace Agents.AgentUrgentu.InstantAssistants
 
 		override public void Execute(MessageForm message)
 		{
+			var msg = (MyMessage)message;
+			msg.CasVstupuDoRadu = MySim.CurrentTime;
+			int skupinaKey = msg.PrisielSanitkou ? 0 : 1;
+			MyAgent.RadVV.Enqueue(msg, (skupinaKey, msg.PacientId));
+			MyAgent.RadVVIds.Add(msg.PacientId);
 		}
 		public new AgentUrgentu MyAgent
 		{

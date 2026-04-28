@@ -14,6 +14,10 @@ namespace Agents.AgentUrgentu.InstantAssistants
 
 		override public void Execute(MessageForm message)
 		{
+			var msg = (MyMessage)message;
+			msg.CasVstupuDoRadu = MySim.CurrentTime;
+			MyAgent.RadOsetrenie.Enqueue(msg, (msg.Priorita, msg.PacientId));
+			MyAgent.RadOsetreniaItems.Add((msg.PacientId, msg.Priorita));
 		}
 		public new AgentUrgentu MyAgent
 		{

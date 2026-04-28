@@ -24,10 +24,11 @@ namespace Agents.AgentOsetrenia
 		}
 
 		//meta! sender="AgentUrgentu", id="26", type="Notice"
+		/*
 		public void ProcessUvolnenieAmbulancie(MessageForm message)
 		{
 		}
-
+		*/
 		//meta! sender="AgentUrgentu", id="24", type="Request"
 		public void ProcessVykonanieOsetrenia(MessageForm message)
 		{
@@ -59,10 +60,11 @@ namespace Agents.AgentOsetrenia
 		{
 			switch (message.Code)
 			{
+				/*
 			case Mc.UvolnenieAmbulancie:
 				ProcessUvolnenieAmbulancie(message);
 			break;
-
+				*/
 			case Mc.VykonanieOsetrenia:
 				ProcessVykonanieOsetrenia(message);
 			break;

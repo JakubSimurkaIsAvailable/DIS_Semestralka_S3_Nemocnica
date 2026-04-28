@@ -1,6 +1,7 @@
 using OSPABA;
 using Simulation;
 using Agents.AgentVstupnehoVysetrenia;
+using DIS_Semestralka_S3_Nemocnica.Generators;
 
 namespace Agents.AgentVstupnehoVysetrenia.InstantAssistants
 {
@@ -8,39 +9,32 @@ namespace Agents.AgentVstupnehoVysetrenia.InstantAssistants
 	public class PriradeniePriority : OSPABA.Action
 	{
         // Priorita pre pacienta "Prišiel sám"
-        private static readonly OSPRNG.EmpiricPair<int>[] _prioritySam = {
-			new OSPRNG.EmpiricPair<int>(new OSPRNG.UniformDiscreteRNG(1, 1), 0.10),
-			new OSPRNG.EmpiricPair<int>(new OSPRNG.UniformDiscreteRNG(2, 2), 0.20),
-			new OSPRNG.EmpiricPair<int>(new OSPRNG.UniformDiscreteRNG(3, 3), 0.15),
-			new OSPRNG.EmpiricPair<int>(new OSPRNG.UniformDiscreteRNG(4, 4), 0.25),
-			new OSPRNG.EmpiricPair<int>(new OSPRNG.UniformDiscreteRNG(5, 5), 0.30),
-		};
-        private OSPRNG.EmpiricRNG<int> _prioritySamRNG = new OSPRNG.EmpiricRNG<int>(_prioritySam);
+		private readonly PercentTable _prioritySamPT;
+
 
         // Priorita pre pacienta "Privezený sanitkou"
-        private static readonly OSPRNG.EmpiricPair<int>[] _priorityAmb = {
-			new OSPRNG.EmpiricPair<int>(new OSPRNG.UniformDiscreteRNG(1, 1), 0.30),
-			new OSPRNG.EmpiricPair<int>(new OSPRNG.UniformDiscreteRNG(2, 2), 0.25),
-			new OSPRNG.EmpiricPair<int>(new OSPRNG.UniformDiscreteRNG(3, 3), 0.20),
-			new OSPRNG.EmpiricPair<int>(new OSPRNG.UniformDiscreteRNG(4, 4), 0.15),
-			new OSPRNG.EmpiricPair<int>(new OSPRNG.UniformDiscreteRNG(5, 5), 0.10),
-		};
-        private OSPRNG.EmpiricRNG<int> _priorityAmbRNG = new OSPRNG.EmpiricRNG<int>(_priorityAmb);
+		private readonly PercentTable _priorityAmbPT;
         public PriradeniePriority(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
-		}
+            var seed = ((MySimulation)mySim).SeedRandom;
+			double[] pravSamPT = { 0.10, 0.20, 0.15, 0.25, 0.30 };
+			double[] priority = { 1, 2, 3, 4, 5 };
+			double[] pravAmbPT = { 0.30, 0.25, 0.20, 0.15, 0.10 };
+            _prioritySamPT = new PercentTable(seed, pravSamPT, priority);
+			_priorityAmbPT = new PercentTable(seed, pravAmbPT, priority);
+        }
 
 		override public void Execute(MessageForm message)
 		{
 			int priorita;
 			if (((MyMessage)message).PrisielSanitkou)
 			{
-				priorita = _priorityAmbRNG.Sample();
+				priorita = (int)_priorityAmbPT.Generate();
 			}
 			else
 			{
-				priorita = _prioritySamRNG.Sample();
+				priorita = (int)_prioritySamPT.Generate();
 			}
             ((MyMessage)message).Priorita = priorita;
 		}

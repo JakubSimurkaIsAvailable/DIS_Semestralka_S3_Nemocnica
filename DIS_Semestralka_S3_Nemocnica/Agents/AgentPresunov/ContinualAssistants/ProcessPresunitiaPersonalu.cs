@@ -10,8 +10,6 @@ namespace Agents.AgentPresunov.ContinualAssistants
 	{
 		// TODO: doplnit spravne rozdelenie pre cas presunu personalu
 		private TrojuholnikovyGenerator _presunPersonalu;
-		private HashSet<int> _active = new HashSet<int>();
-
 		public ProcessPresunitiaPersonalu(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
@@ -21,23 +19,16 @@ namespace Agents.AgentPresunov.ContinualAssistants
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			_active.Clear();
 		}
 
         //meta! sender="AgentPresunov", id="76", type="Start"
         public void ProcessStart(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			if (_active.Contains(msg.PacientId))
-			{
-				_active.Remove(msg.PacientId);
-				AssistantFinished(message);
-				return;
-			}
-			_active.Add(msg.PacientId);
 			double cas = msg.JePresunNaOsetrenie
 				? Math.Max(_presunPersonalu.Generate(), _presunPersonalu.Generate())
 				: _presunPersonalu.Generate();
+			message.Code = Mc.PresunutiePersonaluSkoncilo;
 			Hold(cas, message);
 		}
 
@@ -56,6 +47,10 @@ namespace Agents.AgentPresunov.ContinualAssistants
 			{
 			case Mc.Start:
 				ProcessStart(message);
+			break;
+
+			case Mc.PresunutiePersonaluSkoncilo:
+				AssistantFinished(message);
 			break;
 
 			default:

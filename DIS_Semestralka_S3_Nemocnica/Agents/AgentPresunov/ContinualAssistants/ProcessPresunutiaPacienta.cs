@@ -22,28 +22,19 @@ namespace Agents.AgentPresunov.ContinualAssistants
 			_odchod = new RozdelenieSpojite(seed, 150, 240);
 		}
 
-		private HashSet<int> _active = new HashSet<int>();
-
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			_active.Clear();
 		}
 
 		//meta! sender="AgentPresunov", id="74", type="Start"
 		public void ProcessStart(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			if (_active.Contains(msg.PacientId))
-			{
-				_active.Remove(msg.PacientId);
-				AssistantFinished(message);
-				return;
-			}
-			_active.Add(msg.PacientId);
 			double cas = msg.JeOdchod ? _odchod.Generate()
 				: msg.PrisielSanitkou ? _prichodSanitka.Generate()
 				: _prichodSamostatne.Generate();
+			message.Code = Mc.PresunutiePacientaSkoncilo;
 			Hold(cas, message);
 		}
 
@@ -62,6 +53,10 @@ namespace Agents.AgentPresunov.ContinualAssistants
 			{
 			case Mc.Start:
 				ProcessStart(message);
+			break;
+
+			case Mc.PresunutiePacientaSkoncilo:
+				AssistantFinished(message);
 			break;
 
 			default:

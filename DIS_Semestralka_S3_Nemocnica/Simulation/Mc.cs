@@ -24,5 +24,9 @@ namespace Simulation
 		public const int OdchodPacientaZUrgentu = 4;
 		public const int PresunPersonaluNaVstupneVysetrenie = 5;
 		public const int PresunPersonaluNaOsetrenie = 6;
+		public const int VstupneVysetrenieSkoncilo = 7;
+		public const int OsetrenieSkoncilo = 8;
+		public const int PresunutiePacientaSkoncilo = 9;
+		public const int PresunutiePersonaluSkoncilo = 10;
 	}
 }

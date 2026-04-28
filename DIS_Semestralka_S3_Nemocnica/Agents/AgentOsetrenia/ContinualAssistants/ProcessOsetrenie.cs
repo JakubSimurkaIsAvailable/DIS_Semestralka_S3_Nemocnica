@@ -12,8 +12,6 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
 		// TODO: doplnit spravne rozdelenia podla priority pacienta
 		private SpojityEmpirickyGenerator _samRNG;
 		private RozdelenieSpojite _sanitkaRNG;
-		private HashSet<int> _active = new HashSet<int>();
-
 		public ProcessOsetrenie(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
@@ -28,21 +26,14 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			_active.Clear();
 		}
 
         //meta! sender="AgentOsetrenia", id="41", type="Start"
         public void ProcessStart(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			if (_active.Contains(msg.PacientId))
-			{
-				_active.Remove(msg.PacientId);
-				AssistantFinished(message);
-				return;
-			}
-			_active.Add(msg.PacientId);
 			double cas = msg.PrisielSanitkou ? _sanitkaRNG.Generate() : _samRNG.Generate();
+			message.Code = Mc.OsetrenieSkoncilo;
 			Hold(cas, message);
 		}
 
@@ -61,6 +52,10 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
 			{
 			case Mc.Start:
 				ProcessStart(message);
+			break;
+
+			case Mc.OsetrenieSkoncilo:
+				AssistantFinished(message);
 			break;
 
 			default:

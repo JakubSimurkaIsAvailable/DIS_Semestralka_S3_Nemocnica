@@ -30,7 +30,6 @@ namespace Agents.AgentModelu
 		{
 			var msg = (MyMessage)message;
 			Console.WriteLine($"[{Cas()}] Pacient #{msg.PacientId} opustil urgent");
-			Sim.Pacienti.TryRemove(msg.PacientId, out _);
 			message.Code = Mc.OdchodPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentOkolia);
 			Notice(message);

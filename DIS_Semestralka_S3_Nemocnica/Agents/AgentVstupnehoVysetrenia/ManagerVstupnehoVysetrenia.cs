@@ -32,10 +32,11 @@ namespace Agents.AgentVstupnehoVysetrenia
 		}
 
 		//meta! sender="AgentUrgentu", id="23", type="Notice"
+		/*
 		public void ProcessUvolnenieAmbulancie(MessageForm message)
 		{
 		}
-
+		*/
 		//meta! sender="ProcessVstupneVysetrenie", id="39", type="Finish"
 		public void ProcessFinish(MessageForm message)
 		{
@@ -69,11 +70,11 @@ namespace Agents.AgentVstupnehoVysetrenia
 			case Mc.VykonanieVstupnehoVysetrenia:
 				ProcessVykonanieVstupnehoVysetrenia(message);
 			break;
-
+			/*
 			case Mc.UvolnenieAmbulancie:
 				ProcessUvolnenieAmbulancie(message);
 			break;
-
+			*/
 			default:
 				ProcessDefault(message);
 			break;

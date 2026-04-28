@@ -7,22 +7,15 @@ namespace Agents.AgentZdrojov
 	//meta! id="12"
 	public class AgentZdrojov : OSPABA.Agent
 	{
-		public const int TotalSestry = 3;
-		public const int TotalLekari = 2;
-		public const int TotalMiestnostiA = 5;
-		public const int TotalMiestnostiB = 7;
+		public int TotalSestry { get; set; } = 3;
+		public int TotalLekari { get; set; } = 2;
+		public int TotalMiestnostiA { get; set; } = 5;
+		public int TotalMiestnostiB { get; set; } = 7;
 
-		public int VolneSestry { get; set; } = TotalSestry;
-		public int VolneLekari { get; set; } = TotalLekari;
-		public int VolneMiestnostiA { get; set; } = TotalMiestnostiA;
-		public int VolneMiestnostiB { get; set; } = TotalMiestnostiB;
-
-		// klic: (0=sanitka/1=regular, PacientId) → sanitka vzdy pred regular, v ramci skupiny FIFO
-		public PriorityQueue<MyMessage, (int, int)> PendingVstupneVysetrenie { get; } = new();
-		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> PendingOsetrenie { get; } = new();
-
-		public List<int> RadVVIds { get; } = new();
-		public List<(int Id, int Priorita)> RadOsetreniaItems { get; } = new();
+		public int VolneSestry { get; set; }
+		public int VolneLekari { get; set; }
+		public int VolneMiestnostiA { get; set; }
+		public int VolneMiestnostiB { get; set; }
 
 		public AgentZdrojov(int id, OSPABA.Simulation mySim, Agent parent) :
 			base(id, mySim, parent)
@@ -33,14 +26,15 @@ namespace Agents.AgentZdrojov
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
+			var sim = (MySimulation)MySim;
+			TotalSestry = sim.KonfSestry;
+			TotalLekari = sim.KonfLekari;
+			TotalMiestnostiA = sim.KonfMiestnostiA;
+			TotalMiestnostiB = sim.KonfMiestnostiB;
 			VolneSestry = TotalSestry;
 			VolneLekari = TotalLekari;
 			VolneMiestnostiA = TotalMiestnostiA;
 			VolneMiestnostiB = TotalMiestnostiB;
-			PendingVstupneVysetrenie.Clear();
-			PendingOsetrenie.Clear();
-			RadVVIds.Clear();
-			RadOsetreniaItems.Clear();
 		}
 
 		//meta! userInfo="Generated code: do not modify", tag="begin"

@@ -63,6 +63,9 @@ namespace Agents.AgentOkolia
 		//meta! sender="AgentModelu", id="5", type="Notice"
 		public void ProcessOdchodPacienta(MessageForm message)
 		{
+			var msg = (MyMessage)message;
+			((MySimulation)MySim).Pacienti.TryRemove(msg.PacientId, out _);
+			((MySimulation)MySim).PocetVybavenych++;
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"

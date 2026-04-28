@@ -14,6 +14,8 @@ namespace Agents.AgentZdrojov.InstantAssistants
 
 		override public void Execute(MessageForm message)
 		{
+			MyAgent.VolneSestry--;
+			MyAgent.VolneMiestnostiB--;
 		}
 		public new AgentZdrojov MyAgent
 		{

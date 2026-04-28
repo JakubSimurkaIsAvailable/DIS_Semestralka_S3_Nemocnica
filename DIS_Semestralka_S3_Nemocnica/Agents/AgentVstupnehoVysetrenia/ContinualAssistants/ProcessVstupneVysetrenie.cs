@@ -23,28 +23,19 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 			discreteRNG = new RozdelenieDiskretne(seed, 4, 8);
 		}
 
-		private HashSet<int> _active = new HashSet<int>();
-
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			_active.Clear();
 		}
 
 		//meta! sender="AgentVstupnehoVysetrenia", id="39", type="Start"
 		public void ProcessStart(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			if (_active.Contains(msg.PacientId))
-			{
-				_active.Remove(msg.PacientId);
-				AssistantFinished(message);
-				return;
-			}
-			_active.Add(msg.PacientId);
 			double trvanie = msg.PrisielSanitkou
 				? discreteRNG.Generate()
 				: empiricRNG.Generate();
+			message.Code = Mc.VstupneVysetrenieSkoncilo;
 			Hold(trvanie, message);
 		}
 
@@ -63,6 +54,10 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 			{
 			case Mc.Start:
 				ProcessStart(message);
+			break;
+
+			case Mc.VstupneVysetrenieSkoncilo:
+				AssistantFinished(message);
 			break;
 
 			default:
