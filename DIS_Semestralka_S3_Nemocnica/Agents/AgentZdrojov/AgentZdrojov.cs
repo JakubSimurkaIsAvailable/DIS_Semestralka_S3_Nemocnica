@@ -43,6 +43,7 @@ namespace Agents.AgentZdrojov
 			new ManagerZdrojov(SimId.ManagerZdrojov, MySim, this);
 			new PriradenieZdrojovPreOsetrenie(SimId.PriradenieZdrojovPreOsetrenie, MySim, this);
 			new PriradenieZdrojovPreVstupneVysetrenie(SimId.PriradenieZdrojovPreVstupneVysetrenie, MySim, this);
+			new UvolnenieZdrojov(SimId.UvolnenieZdrojov, MySim, this);
 			AddOwnMessage(Mc.PridelenieZdrojovVstupneVysetrenie);
 			AddOwnMessage(Mc.PridelenieZdrojovOsetrenie);
 			AddOwnMessage(Mc.UvolnenieZdrojovVstupneVysetrenie);

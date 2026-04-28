@@ -37,6 +37,12 @@ namespace Agents.AgentZdrojov
 			Response(message);
 		}
 
+		//meta! sender="AgentUrgentu", type="Notice"
+		public void ProcessUvolnenieZdrojov(MessageForm message)
+		{
+			((UvolnenieZdrojov)MyAgent.FindAssistant(SimId.UvolnenieZdrojov)).Execute(message);
+		}
+
 		//meta! userInfo="Process messages defined in code", id="0"
 		public void ProcessDefault(MessageForm message)
 		{
@@ -60,6 +66,11 @@ namespace Agents.AgentZdrojov
 
 			case Mc.PridelenieZdrojovOsetrenie:
 				ProcessPridelenieZdrojovOsetrenie(message);
+			break;
+
+			case Mc.UvolnenieZdrojovVstupneVysetrenie:
+			case Mc.UvolnenieZdrojovOsetrenie:
+				ProcessUvolnenieZdrojov(message);
 			break;
 
 			default:

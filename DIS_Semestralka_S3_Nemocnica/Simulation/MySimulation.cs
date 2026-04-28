@@ -1,4 +1,3 @@
-using Agents.AgentModelu;
 using Agents.AgentOkolia;
 using OSPABA;
 using Agents.AgentModelu;

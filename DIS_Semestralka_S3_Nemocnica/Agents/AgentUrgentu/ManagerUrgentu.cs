@@ -87,10 +87,10 @@ namespace Agents.AgentUrgentu
 			Sim.AktualizujPriorituPacienta(msg.PacientId, msg.Priorita);
 			Sim.AktualizujStavPacienta(msg.PacientId, "Čaká na ošetrenie");
 
-			// Uvoľni VV zdroje priamo a skús spustiť čakajúcich
-			var z = Z;
-			z.VolneSestry++;
-			z.VolneMiestnostiB++;
+			var uvolni = new MyMessage(MySim);
+			uvolni.Code = Mc.UvolnenieZdrojovVstupneVysetrenie;
+			uvolni.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
+			Notice(uvolni);
 
 			// Zaraď do radu ošetrenia
 			msg.JePresunNaOsetrenie = true;
@@ -117,12 +117,11 @@ namespace Agents.AgentUrgentu
 			var msg = (MyMessage)message;
 			Sim.AktualizujStavPacienta(msg.PacientId, "Odchod");
 
-			// Uvoľni ošetrovacie zdroje priamo a skús spustiť čakajúcich
-			var z = Z;
-			z.VolneLekari++;
-			z.VolneSestry++;
-			if (msg.PouzilaMiestnostA) z.VolneMiestnostiA++;
-			else                       z.VolneMiestnostiB++;
+			var uvolni = new MyMessage(MySim);
+			uvolni.PouzilaMiestnostA = msg.PouzilaMiestnostA;
+			uvolni.Code = Mc.UvolnenieZdrojovOsetrenie;
+			uvolni.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
+			Notice(uvolni);
 
 			SkusSpustitVstupneVysetrenie();
 			SkusSpustitOsetrenie();
