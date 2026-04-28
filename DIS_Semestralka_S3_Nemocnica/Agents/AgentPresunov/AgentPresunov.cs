@@ -31,6 +31,8 @@ namespace Agents.AgentPresunov
 			AddOwnMessage(Mc.OdchodPacientaZUrgentu);
 			AddOwnMessage(Mc.PresunPersonaluNaVstupneVysetrenie);
 			AddOwnMessage(Mc.PresunPersonaluNaOsetrenie);
+			AddOwnMessage(Mc.PresunutiePacientaSkoncilo);
+			AddOwnMessage(Mc.PresunutiePersonaluSkoncilo);
 		}
 		//meta! tag="end"
 	}

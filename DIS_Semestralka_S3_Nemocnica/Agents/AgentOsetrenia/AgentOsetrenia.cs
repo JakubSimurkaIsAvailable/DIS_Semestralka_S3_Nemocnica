@@ -26,6 +26,7 @@ namespace Agents.AgentOsetrenia
 			new ProcessOsetrenie(SimId.ProcessOsetrenie, MySim, this);
 			//AddOwnMessage(Mc.UvolnenieAmbulancie);
 			AddOwnMessage(Mc.VykonanieOsetrenia);
+			AddOwnMessage(Mc.OsetrenieSkoncilo);
 		}
 		//meta! tag="end"
 	}

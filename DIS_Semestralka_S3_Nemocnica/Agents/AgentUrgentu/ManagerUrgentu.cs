@@ -1,6 +1,5 @@
 using OSPABA;
 using Simulation;
-using AgentZdrojovType = Agents.AgentZdrojov.AgentZdrojov;
 
 namespace Agents.AgentUrgentu
 {
@@ -25,18 +24,8 @@ namespace Agents.AgentUrgentu
 			}
 		}
 
-        //meta! sender="AgentZdrojov", id="130", type="Notice"
-        public void ProcessZdrojePrideleneOsetrenie(MessageForm message)
-        {
-        }
-
-        //meta! sender="AgentZdrojov", id="129", type="Notice"
-        public void ProcessZdrojePrideleneVV(MessageForm message)
-        {
-        }
-
-        //meta! sender="AgentModelu", id="8", type="Request"
-        public void ProcessVysetreniePacienta(MessageForm message)
+		//meta! sender="AgentModelu", id="8", type="Request"
+		public void ProcessVysetreniePacienta(MessageForm message)
 		{
 			Sim.AktualizujStavPacienta(((MyMessage)message).PacientId, "Presun na VV");
 			message.Code = Mc.PresunPacienta;
@@ -56,13 +45,14 @@ namespace Agents.AgentUrgentu
 			else
 			{
 				Sim.AktualizujStavPacienta(msg.PacientId, "Čaká na VV");
-				((ZaradenieDoRaduVstupneVysetrenie)MyAgent.FindAssistant(SimId.ZaradenieDoRaduVstupneVysetrenie)).Execute(message);
-				SkusSpustitVstupneVysetrenie();
+				message.Code = Mc.ZaradenieDoRaduVV;
+				message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
+				Notice(message);
 			}
 		}
 
-		//meta! sender="AgentZdrojov", id="28", type="Response"
-		public void ProcessPridelenieZdrojovVstupneVysetrenie(MessageForm message)
+		//meta! sender="AgentZdrojov", id="129", type="Notice"
+		public void ProcessZdrojePrideleneVV(MessageForm message)
 		{
 			Sim.AktualizujStavPacienta(((MyMessage)message).PacientId, "Presun sestry");
 			message.Code = Mc.PresunPersonalu;
@@ -101,20 +91,18 @@ namespace Agents.AgentUrgentu
 			uvolni.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
 			Notice(uvolni);
 
-			// Zaraď do radu ošetrenia
 			msg.JePresunNaOsetrenie = true;
-			((ZaradenieDoRaduOsetrenie)MyAgent.FindAssistant(SimId.ZaradenieDoRaduOsetrenie)).Execute(message);
-
-			SkusSpustitVstupneVysetrenie();
-			SkusSpustitOsetrenie();
+			message.Code = Mc.ZaradenieDoRaduOsetrenie;
+			message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
+			Notice(message);
 		}
 
-		//meta! sender="AgentZdrojov", id="27", type="Response"
-		public void ProcessPridelenieZdrojovOsetrenie(MessageForm message)
+		//meta! sender="AgentZdrojov", id="130", type="Notice"
+		public void ProcessZdrojePrideleneOsetrenie(MessageForm message)
 		{
-			var msg2 = (MyMessage)message;
-			Sim.AktualizujStavPacienta(msg2.PacientId, "Presun personálu");
-			Sim.AktualizujMiestnostPacienta(msg2.PacientId, msg2.PouzilaMiestnostA);
+			var msg = (MyMessage)message;
+			Sim.AktualizujStavPacienta(msg.PacientId, "Presun personálu");
+			Sim.AktualizujMiestnostPacienta(msg.PacientId, msg.PouzilaMiestnostA);
 			message.Code = Mc.PresunPersonalu;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
@@ -132,65 +120,10 @@ namespace Agents.AgentUrgentu
 			uvolni.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
 			Notice(uvolni);
 
-			SkusSpustitVstupneVysetrenie();
-			SkusSpustitOsetrenie();
-
 			msg.JeOdchod = true;
 			message.Code = Mc.PresunPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
-		}
-
-		// ── Dispatch helpers ─────────────────────────────────────────────
-
-		private AgentZdrojovType Z => (AgentZdrojovType)MySim.FindAgent(SimId.AgentZdrojov);
-
-		private void SkusSpustitVstupneVysetrenie()
-		{
-			var z = Z;
-			if (MyAgent.RadVV.Count == 0 || z.VolneSestry == 0 || z.VolneMiestnostiB == 0) return;
-
-			var msg = MyAgent.RadVV.Dequeue();
-			MyAgent.RadVVIds.Remove(msg.PacientId);
-			Sim.LocDobaVV.AddValue(MySim.CurrentTime - msg.CasVstupuDoRadu);
-
-			msg.Code = Mc.PridelenieZdrojovVstupneVysetrenie;
-			msg.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
-			Request(msg);  // AgentZdrojov alokuje zdroje cez PriradenieZdrojovPreVstupneVysetrenie
-		}
-
-		private void SkusSpustitOsetrenie()
-		{
-			var z = Z;
-			if (MyAgent.RadOsetrenie.Count == 0 || z.VolneLekari == 0 || z.VolneSestry == 0) return;
-
-			MyAgent.RadOsetrenie.TryPeek(out var pacient, out _);
-			bool pouzijA;
-			if (pacient!.Priorita <= 2)
-			{
-				if (z.VolneMiestnostiA == 0) return;
-				pouzijA = true;
-			}
-			else if (pacient.Priorita <= 4)
-			{
-				if      (z.VolneMiestnostiB > 0) pouzijA = false;
-				else if (z.VolneMiestnostiA > 0) pouzijA = true;
-				else return;
-			}
-			else
-			{
-				if (z.VolneMiestnostiB == 0) return;
-				pouzijA = false;
-			}
-
-			MyAgent.RadOsetrenie.Dequeue();
-			MyAgent.RadOsetreniaItems.RemoveAll(x => x.Id == pacient.PacientId);
-			Sim.LocDobaOsetrenie.AddValue(MySim.CurrentTime - pacient.CasVstupuDoRadu);
-			pacient.PouzilaMiestnostA = pouzijA;
-
-			pacient.Code = Mc.PridelenieZdrojovOsetrenie;
-			pacient.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
-			Request(pacient);  // AgentZdrojov alokuje zdroje cez PriradenieZdrojovPreOsetrenie
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"
@@ -208,45 +141,45 @@ namespace Agents.AgentUrgentu
 		{
 		}
 
-        override public void ProcessMessage(MessageForm message)
-        {
-            switch (message.Code)
-            {
-                case Mc.ZdrojePrideleneOsetrenie:
-                    ProcessZdrojePrideleneOsetrenie(message);
-                    break;
+		override public void ProcessMessage(MessageForm message)
+		{
+			switch (message.Code)
+			{
+			case Mc.VysetreniePacienta:
+				ProcessVysetreniePacienta(message);
+			break;
 
-                case Mc.PresunPacienta:
-                    ProcessPresunPacienta(message);
-                    break;
+			case Mc.PresunPacienta:
+				ProcessPresunPacienta(message);
+			break;
 
-                case Mc.ZdrojePrideleneVV:
-                    ProcessZdrojePrideleneVV(message);
-                    break;
+			case Mc.ZdrojePrideleneVV:
+				ProcessZdrojePrideleneVV(message);
+			break;
 
-                case Mc.VysetreniePacienta:
-                    ProcessVysetreniePacienta(message);
-                    break;
+			case Mc.PresunPersonalu:
+				ProcessPresunPersonalu(message);
+			break;
 
-                case Mc.VykonanieVstupnehoVysetrenia:
-                    ProcessVykonanieVstupnehoVysetrenia(message);
-                    break;
+			case Mc.VykonanieVstupnehoVysetrenia:
+				ProcessVykonanieVstupnehoVysetrenia(message);
+			break;
 
-                case Mc.PresunPersonalu:
-                    ProcessPresunPersonalu(message);
-                    break;
+			case Mc.ZdrojePrideleneOsetrenie:
+				ProcessZdrojePrideleneOsetrenie(message);
+			break;
 
-                case Mc.VykonanieOsetrenia:
-                    ProcessVykonanieOsetrenia(message);
-                    break;
+			case Mc.VykonanieOsetrenia:
+				ProcessVykonanieOsetrenia(message);
+			break;
 
-                default:
-                    ProcessDefault(message);
-                    break;
-            }
-        }
-        //meta! tag="end"
-        public new AgentUrgentu MyAgent
+			default:
+				ProcessDefault(message);
+			break;
+			}
+		}
+		//meta! tag="end"
+		public new AgentUrgentu MyAgent
 		{
 			get
 			{

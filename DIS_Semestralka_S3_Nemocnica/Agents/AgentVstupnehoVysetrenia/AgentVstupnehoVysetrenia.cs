@@ -27,6 +27,7 @@ namespace Agents.AgentVstupnehoVysetrenia
 			new PriradeniePriority(SimId.PriradeniePriority, MySim, this);
 			new ProcessVstupneVysetrenie(SimId.ProcessVstupneVysetrenie, MySim, this);
 			AddOwnMessage(Mc.VykonanieVstupnehoVysetrenia);
+			AddOwnMessage(Mc.VstupneVysetrenieSkoncilo);
 			//AddOwnMessage(Mc.UvolnenieAmbulancie);
 		}
 		//meta! tag="end"

@@ -266,9 +266,9 @@ namespace DIS_Semestralka_S3_Nemocnica
         private void AktualizujRadyTab()
         {
             if (_sim == null) return;
-            var u = _sim.AgentUrgentu;
+            var z = _sim.AgentZdrojov;
 
-            var vvIds = u.RadVVIds.ToList();
+            var vvIds = z.RadVVIds.ToList();
             lbRadVV.BeginUpdate();
             lbRadVV.Items.Clear();
             foreach (var id in vvIds)
@@ -276,7 +276,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             lbRadVV.EndUpdate();
             lblRadVVCount.Text = $"Rad VV ({vvIds.Count})";
 
-            var oseItems = u.RadOsetreniaItems.OrderBy(x => x.Priorita).ToList();
+            var oseItems = z.RadOsetreniaItems.OrderBy(x => x.Priorita).ToList();
             lbRadOsetrenie.BeginUpdate();
             lbRadOsetrenie.Items.Clear();
             foreach (var (id, prio) in oseItems)

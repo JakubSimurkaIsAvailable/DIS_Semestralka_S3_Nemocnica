@@ -17,6 +17,11 @@ namespace Agents.AgentZdrojov
 		public int VolneMiestnostiA { get; set; }
 		public int VolneMiestnostiB { get; set; }
 
+		public PriorityQueue<MyMessage, (int, int)> RadVV { get; } = new();
+		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadOsetrenie { get; } = new();
+		public List<int> RadVVIds { get; } = new();
+		public List<(int Id, int Priorita)> RadOsetreniaItems { get; } = new();
+
 		public AgentZdrojov(int id, OSPABA.Simulation mySim, Agent parent) :
 			base(id, mySim, parent)
 		{
@@ -35,6 +40,10 @@ namespace Agents.AgentZdrojov
 			VolneLekari = TotalLekari;
 			VolneMiestnostiA = TotalMiestnostiA;
 			VolneMiestnostiB = TotalMiestnostiB;
+			RadVV.Clear();
+			RadOsetrenie.Clear();
+			RadVVIds.Clear();
+			RadOsetreniaItems.Clear();
 		}
 
 		//meta! userInfo="Generated code: do not modify", tag="begin"
@@ -49,6 +58,8 @@ namespace Agents.AgentZdrojov
             AddOwnMessage(Mc.UvolnenieAmbulancie);
             AddOwnMessage(Mc.ZaradenieDoRaduOsetrenie);
             AddOwnMessage(Mc.ZaradenieDoRaduVV);
+            AddOwnMessage(Mc.UvolnenieZdrojovVstupneVysetrenie);
+            AddOwnMessage(Mc.UvolnenieZdrojovOsetrenie);
         }
 		//meta! tag="end"
 	}
