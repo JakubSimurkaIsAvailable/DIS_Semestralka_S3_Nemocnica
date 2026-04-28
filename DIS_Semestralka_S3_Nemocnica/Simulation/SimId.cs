@@ -28,6 +28,7 @@ namespace Simulation
 		public const int ZaradenieDoRaduVstupneVysetrenie = 1016;
 		public const int PrichodPacienta = 1009;
 		public const int PrichodPacientaSanitka = 1010;
+		public const int UvolnenieZdrojov = 1018;
 		public const int PriradenieZdrojovPreVstupneVysetrenie = 1011;
 		public const int PriradenieZdrojovPreOsetrenie = 1012;
 		//meta! tag="end"

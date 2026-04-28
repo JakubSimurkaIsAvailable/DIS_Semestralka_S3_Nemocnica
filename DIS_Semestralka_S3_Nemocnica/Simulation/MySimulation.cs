@@ -1,10 +1,12 @@
 using Agents.AgentModelu;
 using Agents.AgentOkolia;
-using Agents.AgentOsetrenia;
-using Agents.AgentPresunov;
+using OSPABA;
+using Agents.AgentModelu;
 using Agents.AgentUrgentu;
+using Agents.AgentPresunov;
 using Agents.AgentVstupnehoVysetrenia;
 using Agents.AgentZdrojov;
+using Agents.AgentOsetrenia;
 using DIS_Semestralka_S3_Nemocnica.Collectors;
 using System.Collections.Concurrent;
 
@@ -94,13 +96,20 @@ namespace Simulation
 			AgentOsetrenia = new AgentOsetrenia(SimId.AgentOsetrenia, this, AgentUrgentu);
 			AgentZdrojov = new AgentZdrojov(SimId.AgentZdrojov, this, AgentUrgentu);
 		}
-		public AgentModelu AgentModelu { get; set; } = null!;
-		public AgentOkolia AgentOkolia { get; set; } = null!;
-		public AgentUrgentu AgentUrgentu { get; set; } = null!;
-		public AgentPresunov AgentPresunov { get; set; } = null!;
-		public AgentVstupnehoVysetrenia AgentVstupnehoVysetrenia { get; set; } = null!;
-		public AgentOsetrenia AgentOsetrenia { get; set; } = null!;
-		public AgentZdrojov AgentZdrojov { get; set; } = null!;
+		public AgentModelu AgentModelu
+		{ get; set; }
+		public AgentOkolia AgentOkolia
+		{ get; set; }
+		public AgentUrgentu AgentUrgentu
+		{ get; set; }
+		public AgentPresunov AgentPresunov
+		{ get; set; }
+		public AgentVstupnehoVysetrenia AgentVstupnehoVysetrenia
+		{ get; set; }
+		public AgentOsetrenia AgentOsetrenia
+		{ get; set; }
+		public AgentZdrojov AgentZdrojov
+		{ get; set; }
 		//meta! tag="end"
 	}
 }
