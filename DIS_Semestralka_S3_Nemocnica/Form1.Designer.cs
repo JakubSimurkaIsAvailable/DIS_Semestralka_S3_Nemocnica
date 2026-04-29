@@ -72,7 +72,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             lblRadOsetrenieCount = new System.Windows.Forms.Label();
             lbRadOsetrenie = new System.Windows.Forms.ListBox();
             tpAnimator = new System.Windows.Forms.TabPage();
-            pnlAnimator = new DoubleBufferedPanel();
+            pnlAnimator = new System.Windows.Forms.Panel();
 
             ((System.ComponentModel.ISupportInitialize)nudTrvanie).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudReplikacie).BeginInit();
@@ -124,9 +124,9 @@ namespace DIS_Semestralka_S3_Nemocnica
 
             // nudTrvanie
             nudTrvanie.Margin = new System.Windows.Forms.Padding(2, 4, 10, 0);
-            nudTrvanie.Maximum = new decimal(new int[] { 24, 0, 0, 0 });
+            nudTrvanie.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             nudTrvanie.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            nudTrvanie.Value = new decimal(new int[] { 8, 0, 0, 0 });
+            nudTrvanie.Value = new decimal(new int[] { 24, 0, 0, 0 });
             nudTrvanie.Width = 55;
 
             // lblReplikacieLabel
@@ -484,7 +484,6 @@ namespace DIS_Semestralka_S3_Nemocnica
             // pnlAnimator
             pnlAnimator.BackColor = System.Drawing.Color.White;
             pnlAnimator.Dock = System.Windows.Forms.DockStyle.Fill;
-            pnlAnimator.Paint += PnlAnimator_Paint;
 
             // Form
             Controls.Add(tabControl);
@@ -587,6 +586,6 @@ namespace DIS_Semestralka_S3_Nemocnica
         private System.Windows.Forms.Label lblRadOsetrenieCount;
         private System.Windows.Forms.ListBox lbRadOsetrenie;
         private System.Windows.Forms.TabPage tpAnimator;
-        private DoubleBufferedPanel pnlAnimator;
+        private System.Windows.Forms.Panel pnlAnimator;
     }
 }

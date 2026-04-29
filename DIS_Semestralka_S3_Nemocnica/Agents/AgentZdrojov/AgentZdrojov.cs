@@ -58,8 +58,6 @@ namespace Agents.AgentZdrojov
             AddOwnMessage(Mc.UvolnenieAmbulancie);
             AddOwnMessage(Mc.ZaradenieDoRaduOsetrenie);
             AddOwnMessage(Mc.ZaradenieDoRaduVV);
-            AddOwnMessage(Mc.UvolnenieZdrojovVstupneVysetrenie);
-            AddOwnMessage(Mc.UvolnenieZdrojovOsetrenie);
         }
 		//meta! tag="end"
 	}

@@ -1,10 +1,12 @@
-using DIS_Semestralka_S3_Nemocnica.Generators;
 using System.Windows.Forms;
 
-Application.EnableVisualStyles();
-Application.SetCompatibleTextRenderingDefault(false);
-Application.Run(new DIS_Semestralka_S3_Nemocnica.Form1());
-
-
-
-
+static class Program
+{
+    [STAThread]
+    static void Main()
+    {
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+        Application.Run(new DIS_Semestralka_S3_Nemocnica.Form1());
+    }
+}

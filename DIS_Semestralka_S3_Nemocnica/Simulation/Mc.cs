@@ -21,8 +21,6 @@ namespace Simulation
 
 		// 1..1000 range reserved for user
 		public const int PrichodPacientaNaUrgent = 1;
-		public const int UvolnenieZdrojovVstupneVysetrenie = 2;
-		public const int UvolnenieZdrojovOsetrenie = 3;
 		public const int OdchodPacientaZUrgentu = 4;
 		public const int PresunPersonaluNaVstupneVysetrenie = 5;
 		public const int PresunPersonaluNaOsetrenie = 6;

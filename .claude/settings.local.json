@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(dotnet tool *)",
-      "Bash(ilspycmd \"C:/Users/Jakub/source/repos/DIS_Semestralka_S3_Nemocnica/DIS_Semestralka_S3_Nemocnica/ABACore.dll\")"
+      "Bash(ilspycmd \"C:/Users/Jakub/source/repos/DIS_Semestralka_S3_Nemocnica/DIS_Semestralka_S3_Nemocnica/ABACore.dll\")",
+      "Bash(ilspycmd \"C:\\\\Users\\\\Jakub\\\\source\\\\repos\\\\DIS_Semestralka_S3_Nemocnica\\\\DIS_Semestralka_S3_Nemocnica\\\\ABACore.dll\")",
+      "Bash(grep -v \"//\")"
     ]
   }
 }

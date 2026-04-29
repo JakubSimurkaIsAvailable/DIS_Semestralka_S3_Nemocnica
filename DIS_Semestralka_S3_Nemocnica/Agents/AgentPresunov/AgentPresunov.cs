@@ -11,7 +11,13 @@ namespace Agents.AgentPresunov
 			base(id, mySim, parent)
 		{
 			Init();
-		}
+            AddOwnMessage(Mc.PrichodPacientaNaUrgent);
+            AddOwnMessage(Mc.OdchodPacientaZUrgentu);
+            AddOwnMessage(Mc.PresunPersonaluNaVstupneVysetrenie);
+            AddOwnMessage(Mc.PresunPersonaluNaOsetrenie);
+            AddOwnMessage(Mc.PresunutiePacientaSkoncilo);
+            AddOwnMessage(Mc.PresunutiePersonaluSkoncilo);
+        }
 
 		override public void PrepareReplication()
 		{
@@ -27,12 +33,6 @@ namespace Agents.AgentPresunov
 			new ProcessPresunitiaPersonalu(SimId.ProcessPresunitiaPersonalu, MySim, this);
 			AddOwnMessage(Mc.PresunPacienta);
 			AddOwnMessage(Mc.PresunPersonalu);
-			AddOwnMessage(Mc.PrichodPacientaNaUrgent);
-			AddOwnMessage(Mc.OdchodPacientaZUrgentu);
-			AddOwnMessage(Mc.PresunPersonaluNaVstupneVysetrenie);
-			AddOwnMessage(Mc.PresunPersonaluNaOsetrenie);
-			AddOwnMessage(Mc.PresunutiePacientaSkoncilo);
-			AddOwnMessage(Mc.PresunutiePersonaluSkoncilo);
 		}
 		//meta! tag="end"
 	}

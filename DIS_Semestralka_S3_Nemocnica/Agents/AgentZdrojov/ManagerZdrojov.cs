@@ -39,18 +39,13 @@ namespace Agents.AgentZdrojov
 			SkusSpustitOsetrenie();
 		}
 
-		//meta! sender="AgentUrgentu", type="Notice"
-		public void ProcessUvolnenieZdrojov(MessageForm message)
-		{
-			((UvolnenieZdrojov)MyAgent.FindAssistant(SimId.UvolnenieZdrojov)).Execute(message);
-			SkusSpustitVV();
-			SkusSpustitOsetrenie();
-		}
-
 		//meta! sender="AgentUrgentu", id="98", type="Notice"
 		public void ProcessUvolnenieAmbulancie(MessageForm message)
 		{
-		}
+            ((UvolnenieZdrojov)MyAgent.FindAssistant(SimId.UvolnenieZdrojov)).Execute(message);
+            SkusSpustitVV();
+            SkusSpustitOsetrenie();
+        }
 
 		private void SkusSpustitVV()
 		{
@@ -125,11 +120,6 @@ namespace Agents.AgentZdrojov
 
 			case Mc.ZaradenieDoRaduOsetrenie:
 				ProcessZaradenieDoRaduOsetrenie(message);
-			break;
-
-			case Mc.UvolnenieZdrojovVstupneVysetrenie:
-			case Mc.UvolnenieZdrojovOsetrenie:
-				ProcessUvolnenieZdrojov(message);
 			break;
 
 			case Mc.UvolnenieAmbulancie:

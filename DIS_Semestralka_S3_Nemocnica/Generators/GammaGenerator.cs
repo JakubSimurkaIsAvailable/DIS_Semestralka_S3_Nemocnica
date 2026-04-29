@@ -8,6 +8,7 @@ namespace DIS_Semestralka_S3_Nemocnica.Generators
 {
     /// <summary>
     /// Generátor náhodných čísel z Gamma rozdelenia pomocou Marsaglia-Tsang metódy.
+    /// Trieda vytvorená pomocou AI, kapitola 1.1.1
     /// </summary>
     public class GammaGenerator
     {

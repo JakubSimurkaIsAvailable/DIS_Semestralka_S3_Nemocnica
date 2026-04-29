@@ -34,6 +34,11 @@ namespace Agents.AgentPresunov.ContinualAssistants
 			double cas = msg.JeOdchod ? _odchod.Generate()
 				: msg.PrisielSanitkou ? _prichodSanitka.Generate()
 				: _prichodSamostatne.Generate();
+			var sim = (MySimulation)MySim;
+			if (msg.JeOdchod)
+				sim.AnimPacientPohyb(msg.PacientId, cas, SimAnim.Vystup.X, SimAnim.Vystup.Y);
+			else
+				sim.AnimPacientPohyb(msg.PacientId, cas, SimAnim.VVRad.X, SimAnim.VVRad.Y);
 			message.Code = Mc.PresunutiePacientaSkoncilo;
 			Hold(cas, message);
 		}

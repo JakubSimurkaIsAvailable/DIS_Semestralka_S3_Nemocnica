@@ -8,6 +8,7 @@ namespace Agents.AgentPresunov.ContinualAssistants
 	//meta! id="75"
 	public class ProcessPresunitiaPersonalu : OSPABA.Process
 	{
+
 		// TODO: doplnit spravne rozdelenie pre cas presunu personalu
 		private TrojuholnikovyGenerator _presunPersonalu;
 		public ProcessPresunitiaPersonalu(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
@@ -25,9 +26,20 @@ namespace Agents.AgentPresunov.ContinualAssistants
         public void ProcessStart(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			double cas = msg.JePresunNaOsetrenie
-				? Math.Max(_presunPersonalu.Generate(), _presunPersonalu.Generate())
-				: _presunPersonalu.Generate();
+			var sim = (MySimulation)MySim;
+			double cas;
+			if (msg.JePresunNaOsetrenie)
+			{
+				double tSestra = _presunPersonalu.Generate();
+				double tLekar  = _presunPersonalu.Generate();
+				cas = Math.Max(tSestra, tLekar);
+				sim.AnimStaffPohybDoMiestnosti(msg.PacientId, tSestra, tLekar);
+			}
+			else
+			{
+				cas = _presunPersonalu.Generate();
+				sim.AnimSestryPohybDoMiestnosti(msg.PacientId, cas);
+			}
 			message.Code = Mc.PresunutiePersonaluSkoncilo;
 			Hold(cas, message);
 		}

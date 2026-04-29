@@ -35,6 +35,7 @@ namespace Agents.AgentOkolia
 				CasPrichodu = MySim.CurrentTime,
 				Stav = "Presun"
 			};
+			((MySimulation)MySim).AnimPacientPrisiel(msg.PacientId, true);
 			message.Code = Mc.PrichodPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentModelu);
 			Notice(message);
@@ -52,6 +53,7 @@ namespace Agents.AgentOkolia
 				CasPrichodu = MySim.CurrentTime,
 				Stav = "Presun"
 			};
+			((MySimulation)MySim).AnimPacientPrisiel(msg.PacientId, false);
 			message.Code = Mc.PrichodPacienta;
 			message.Addressee = MySim.FindAgent(SimId.AgentModelu);
             Notice(message);
@@ -64,6 +66,7 @@ namespace Agents.AgentOkolia
 		public void ProcessOdchodPacienta(MessageForm message)
 		{
 			var msg = (MyMessage)message;
+			((MySimulation)MySim).AnimPacientOdsiel(msg.PacientId);
 			((MySimulation)MySim).Pacienti.TryRemove(msg.PacientId, out _);
 			((MySimulation)MySim).PocetVybavenych++;
 		}

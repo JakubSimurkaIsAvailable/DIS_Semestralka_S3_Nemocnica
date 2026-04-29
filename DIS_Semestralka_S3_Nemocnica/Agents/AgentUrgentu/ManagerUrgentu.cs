@@ -45,6 +45,7 @@ namespace Agents.AgentUrgentu
 			else
 			{
 				Sim.AktualizujStavPacienta(msg.PacientId, "Čaká na VV");
+				Sim.AnimPacientDoVVRadu(msg.PacientId);
 				message.Code = Mc.ZaradenieDoRaduVV;
 				message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
 				Notice(message);
@@ -54,7 +55,9 @@ namespace Agents.AgentUrgentu
 		//meta! sender="AgentZdrojov", id="129", type="Notice"
 		public void ProcessZdrojePrideleneVV(MessageForm message)
 		{
-			Sim.AktualizujStavPacienta(((MyMessage)message).PacientId, "Presun sestry");
+			var msg = (MyMessage)message;
+			Sim.AktualizujStavPacienta(msg.PacientId, "Presun sestry");
+			Sim.AnimAllocVVRoom(msg.PacientId);
 			message.Code = Mc.PresunPersonalu;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
@@ -85,9 +88,11 @@ namespace Agents.AgentUrgentu
 			var msg = (MyMessage)message;
 			Sim.AktualizujPriorituPacienta(msg.PacientId, msg.Priorita);
 			Sim.AktualizujStavPacienta(msg.PacientId, "Čaká na ošetrenie");
+			Sim.AnimUvolniVV(msg.PacientId);
 
 			var uvolni = new MyMessage(MySim);
-			uvolni.Code = Mc.UvolnenieZdrojovVstupneVysetrenie;
+			uvolni.JePresunNaOsetrenie = false;
+			uvolni.Code = Mc.UvolnenieAmbulancie;
 			uvolni.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
 			Notice(uvolni);
 
@@ -103,6 +108,7 @@ namespace Agents.AgentUrgentu
 			var msg = (MyMessage)message;
 			Sim.AktualizujStavPacienta(msg.PacientId, "Presun personálu");
 			Sim.AktualizujMiestnostPacienta(msg.PacientId, msg.PouzilaMiestnostA);
+			Sim.AnimAllocOsetrenieRoom(msg.PacientId, msg.PouzilaMiestnostA);
 			message.Code = Mc.PresunPersonalu;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
@@ -113,10 +119,12 @@ namespace Agents.AgentUrgentu
 		{
 			var msg = (MyMessage)message;
 			Sim.AktualizujStavPacienta(msg.PacientId, "Odchod");
+			Sim.AnimUvolniOsetrenie(msg.PacientId);
 
 			var uvolni = new MyMessage(MySim);
 			uvolni.PouzilaMiestnostA = msg.PouzilaMiestnostA;
-			uvolni.Code = Mc.UvolnenieZdrojovOsetrenie;
+			uvolni.JePresunNaOsetrenie = true;
+			uvolni.Code = Mc.UvolnenieAmbulancie;
 			uvolni.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
 			Notice(uvolni);
 

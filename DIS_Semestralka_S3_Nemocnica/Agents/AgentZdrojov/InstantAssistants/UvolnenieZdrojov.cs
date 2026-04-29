@@ -15,18 +15,17 @@ namespace Agents.AgentZdrojov.InstantAssistants
 		override public void Execute(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			switch (message.Code)
+			if (msg.JePresunNaOsetrenie)
 			{
-				case Mc.UvolnenieZdrojovVstupneVysetrenie:
-					MyAgent.VolneSestry++;
-					MyAgent.VolneMiestnostiB++;
-					break;
-				case Mc.UvolnenieZdrojovOsetrenie:
-					MyAgent.VolneLekari++;
-					MyAgent.VolneSestry++;
-					if (msg.PouzilaMiestnostA) MyAgent.VolneMiestnostiA++;
-					else                       MyAgent.VolneMiestnostiB++;
-					break;
+				MyAgent.VolneLekari++;
+				MyAgent.VolneSestry++;
+				if (msg.PouzilaMiestnostA) MyAgent.VolneMiestnostiA++;
+				else                       MyAgent.VolneMiestnostiB++;
+			}
+			else
+			{
+				MyAgent.VolneSestry++;
+				MyAgent.VolneMiestnostiB++;
 			}
 		}
 		public new AgentZdrojov MyAgent
