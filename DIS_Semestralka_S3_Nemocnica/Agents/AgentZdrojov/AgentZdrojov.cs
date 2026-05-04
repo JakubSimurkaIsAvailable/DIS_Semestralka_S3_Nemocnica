@@ -18,9 +18,13 @@ namespace Agents.AgentZdrojov
 		public int VolneMiestnostiB { get; set; }
 
 		public PriorityQueue<MyMessage, (int, int)> RadVV { get; } = new();
-		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadOsetrenie { get; } = new();
+		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadA  { get; } = new();
+		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadAB { get; } = new();
+		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadB  { get; } = new();
 		public List<int> RadVVIds { get; } = new();
-		public List<(int Id, int Priorita)> RadOsetreniaItems { get; } = new();
+		public List<(int Id, int Priorita)> RadAItems  { get; } = new();
+		public List<(int Id, int Priorita)> RadABItems { get; } = new();
+		public List<(int Id, int Priorita)> RadBItems  { get; } = new();
 
 		public AgentZdrojov(int id, OSPABA.Simulation mySim, Agent parent) :
 			base(id, mySim, parent)
@@ -41,9 +45,13 @@ namespace Agents.AgentZdrojov
 			VolneMiestnostiA = TotalMiestnostiA;
 			VolneMiestnostiB = TotalMiestnostiB;
 			RadVV.Clear();
-			RadOsetrenie.Clear();
+			RadA.Clear();
+			RadAB.Clear();
+			RadB.Clear();
 			RadVVIds.Clear();
-			RadOsetreniaItems.Clear();
+			RadAItems.Clear();
+			RadABItems.Clear();
+			RadBItems.Clear();
 		}
 
 		//meta! userInfo="Generated code: do not modify", tag="begin"

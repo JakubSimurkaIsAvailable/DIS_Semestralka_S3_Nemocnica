@@ -17,7 +17,7 @@ namespace Simulation
         private const float RoomRowStep = 105f;
         private const int   MaxCols     = 10;
 
-        private static float RoomStep(int total)
+        public static float RoomStep(int total)
             => Math.Min(156f, 1008f / Math.Min(total, MaxCols));
 
         public static (float X, float Y) RoomCenter(bool isA, int idx, int totalA, int totalB)

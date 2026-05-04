@@ -33,6 +33,7 @@ namespace Agents.AgentOkolia.ContinualAssistants
 				AssistantFinished(notif);
 			}
 			Hold(VygenerujCas(), message);
+
         }
 
 		//meta! userInfo="Process messages defined in code", id="0"

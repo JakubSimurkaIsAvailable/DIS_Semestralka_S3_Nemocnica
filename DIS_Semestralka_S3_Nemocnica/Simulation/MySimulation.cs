@@ -29,11 +29,50 @@ namespace Simulation
         public int KonfMiestnostiA { get; set; } = 5;
         public int KonfMiestnostiB { get; set; } = 7;
 
-        public StatisticsCollector LocDobaVV { get; private set; } = new();
-        public StatisticsCollector LocDobaOsetrenie { get; private set; } = new();
+        // ── Local stats (reset each replication) ──────────────────────
+        public volatile int LocPocetPacienti;
+        public volatile int LocPocetPeso;
+        public volatile int LocPocetSanitka;
 
-        public StatisticsCollector DobaVV { get; } = new();
-        public StatisticsCollector DobaOsetrenie { get; } = new();
+        public StatisticsCollector LocDobaVV            { get; private set; } = new();
+        public StatisticsCollector LocDobaOsetrenie      { get; private set; } = new();
+        public StatisticsCollector LocDobaVSysteme       { get; private set; } = new();
+        public StatisticsCollector LocDobaVSystemePeso   { get; private set; } = new();
+        public StatisticsCollector LocDobaVSystemeSanitka{ get; private set; } = new();
+        public StatisticsCollector LocDobaVVPeso         { get; private set; } = new();
+        public StatisticsCollector LocDobaVVSanitka      { get; private set; } = new();
+        public StatisticsCollector LocDobaOsetrenieA     { get; private set; } = new();
+        public StatisticsCollector LocDobaOsetrenieAB    { get; private set; } = new();
+        public StatisticsCollector LocDobaOsetrenieB     { get; private set; } = new();
+        public StatisticsCollector LocDobaPrichodDoOsetrenia       { get; private set; } = new();
+        public StatisticsCollector LocDobaPrichodDoOsetreniaPeso    { get; private set; } = new();
+        public StatisticsCollector LocDobaPrichodDoOsetreniaSanitka { get; private set; } = new();
+        public WeightedStatisticsCollector LocVytazenostLekari       { get; private set; } = new();
+        public WeightedStatisticsCollector LocVytazenostSestry       { get; private set; } = new();
+        public WeightedStatisticsCollector LocVytazenostMiestnostiA  { get; private set; } = new();
+        public WeightedStatisticsCollector LocVytazenostMiestnostiB  { get; private set; } = new();
+
+        // ── Aggregate stats (across replications) ─────────────────────
+        public StatisticsCollector PocetPacienti  { get; } = new(true);
+        public StatisticsCollector PocetPeso      { get; } = new(true);
+        public StatisticsCollector PocetSanitka   { get; } = new(true);
+        public StatisticsCollector DobaVV              { get; } = new(true);
+        public StatisticsCollector DobaOsetrenie       { get; } = new(true);
+        public StatisticsCollector DobaVSysteme        { get; } = new(true);
+        public StatisticsCollector DobaVSystemePeso    { get; } = new(true);
+        public StatisticsCollector DobaVSystemeSanitka { get; } = new(true);
+        public StatisticsCollector DobaVVPeso          { get; } = new(true);
+        public StatisticsCollector DobaVVSanitka       { get; } = new(true);
+        public StatisticsCollector DobaOsetrenieA      { get; } = new(true);
+        public StatisticsCollector DobaOsetrenieAB     { get; } = new(true);
+        public StatisticsCollector DobaOsetrenieB      { get; } = new(true);
+        public StatisticsCollector DobaPrichodDoOsetrenia       { get; } = new(true);
+        public StatisticsCollector DobaPrichodDoOsetreniaPeso    { get; } = new(true);
+        public StatisticsCollector DobaPrichodDoOsetreniaSanitka { get; } = new(true);
+        public StatisticsCollector VytazenostLekari       { get; } = new(true);
+        public StatisticsCollector VytazenostSestry       { get; } = new(true);
+        public StatisticsCollector VytazenostMiestnostiA  { get; } = new(true);
+        public StatisticsCollector VytazenostMiestnostiB  { get; } = new(true);
 
         // ── Animation state (sim thread only) ─────────────────────────
         private readonly Dictionary<int, AnimShapeItem> _animPacienti = new();
@@ -52,9 +91,14 @@ namespace Simulation
         private readonly Dictionary<int, int>    _animPacientVVSlot = new();
         private int _animVVSlotMax = 0;
 
-        private readonly Queue<int>              _animVolneSlotOse  = new();
+        private readonly Queue<int>              _animVolneSlotOse   = new();
         private readonly Dictionary<int, int>    _animPacientOseSlot = new();
-        private int _animOseSlotMax = 0;
+
+        private readonly Dictionary<int, (bool IsA, int Slot)> _sestraRoom  = new();
+        private readonly Dictionary<int, (bool IsA, int Slot)> _lekarRoom   = new();
+        private readonly Dictionary<int, (bool IsA, int Slot)> _pacientRoom = new();
+
+        private List<AnimShapeItem> _animMiestnosti = new();
 
         private Animator? AnimCore => Animator as Animator;
 
@@ -81,18 +125,61 @@ namespace Simulation
                 info.PouzilaMiestnostA = pouzilaMiestnostA;
         }
 
+        // C# events — use += so multiple subscribers can coexist.
+        // OSPABA's On* callbacks use = (replaces), so we bridge through these events.
+        public event Action<MySimulation>? ReplicationFinished;
+        public event Action<MySimulation>? ReplicationDidStart;
+        public event Action<MySimulation>? GuiTick;
+
         public MySimulation()
         {
             Init();
+            OnRefreshUI(_ => GuiTick?.Invoke(this));
+            // Single OSPABA registration: collect stats first, then notify subscribers.
             OnReplicationDidFinish(_ =>
             {
-                if (LocDobaVV.ValueCounter > 0)        DobaVV.AddValue(LocDobaVV.Average);
-                if (LocDobaOsetrenie.ValueCounter > 0) DobaOsetrenie.AddValue(LocDobaOsetrenie.Average);
+                // Finalize weighted utilization at simulation end time
+                var z = AgentZdrojov;
+                double t = CurrentTime;
+                if (z.TotalLekari > 0)
+                    LocVytazenostLekari.AddWeightedValue((double)(z.TotalLekari - z.VolneLekari) / z.TotalLekari, t);
+                if (z.TotalSestry > 0)
+                    LocVytazenostSestry.AddWeightedValue((double)(z.TotalSestry - z.VolneSestry) / z.TotalSestry, t);
+                if (z.TotalMiestnostiA > 0)
+                    LocVytazenostMiestnostiA.AddWeightedValue((double)(z.TotalMiestnostiA - z.VolneMiestnostiA) / z.TotalMiestnostiA, t);
+                if (z.TotalMiestnostiB > 0)
+                    LocVytazenostMiestnostiB.AddWeightedValue((double)(z.TotalMiestnostiB - z.VolneMiestnostiB) / z.TotalMiestnostiB, t);
+
+                // Collect per-replication averages into aggregate collectors
+                PocetPacienti.AddValue(LocPocetPacienti);
+                PocetPeso.AddValue(LocPocetPeso);
+                PocetSanitka.AddValue(LocPocetSanitka);
+                if (LocDobaVV.ValueCounter > 0)             DobaVV.AddValue(LocDobaVV.Average);
+                if (LocDobaOsetrenie.ValueCounter > 0)      DobaOsetrenie.AddValue(LocDobaOsetrenie.Average);
+                if (LocDobaVSysteme.ValueCounter > 0)       DobaVSysteme.AddValue(LocDobaVSysteme.Average);
+                if (LocDobaVSystemePeso.ValueCounter > 0)   DobaVSystemePeso.AddValue(LocDobaVSystemePeso.Average);
+                if (LocDobaVSystemeSanitka.ValueCounter > 0)DobaVSystemeSanitka.AddValue(LocDobaVSystemeSanitka.Average);
+                if (LocDobaVVPeso.ValueCounter > 0)         DobaVVPeso.AddValue(LocDobaVVPeso.Average);
+                if (LocDobaVVSanitka.ValueCounter > 0)      DobaVVSanitka.AddValue(LocDobaVVSanitka.Average);
+                if (LocDobaOsetrenieA.ValueCounter > 0)     DobaOsetrenieA.AddValue(LocDobaOsetrenieA.Average);
+                if (LocDobaOsetrenieAB.ValueCounter > 0)    DobaOsetrenieAB.AddValue(LocDobaOsetrenieAB.Average);
+                if (LocDobaOsetrenieB.ValueCounter > 0)     DobaOsetrenieB.AddValue(LocDobaOsetrenieB.Average);
+                if (LocDobaPrichodDoOsetrenia.ValueCounter > 0)       DobaPrichodDoOsetrenia.AddValue(LocDobaPrichodDoOsetrenia.Average);
+                if (LocDobaPrichodDoOsetreniaPeso.ValueCounter > 0)    DobaPrichodDoOsetreniaPeso.AddValue(LocDobaPrichodDoOsetreniaPeso.Average);
+                if (LocDobaPrichodDoOsetreniaSanitka.ValueCounter > 0) DobaPrichodDoOsetreniaSanitka.AddValue(LocDobaPrichodDoOsetreniaSanitka.Average);
+                VytazenostLekari.AddValue(LocVytazenostLekari.WeightedAverage);
+                VytazenostSestry.AddValue(LocVytazenostSestry.WeightedAverage);
+                VytazenostMiestnostiA.AddValue(LocVytazenostMiestnostiA.WeightedAverage);
+                VytazenostMiestnostiB.AddValue(LocVytazenostMiestnostiB.WeightedAverage);
+
+                ReplicationFinished?.Invoke(this);
             });
         }
 
         override public void PrepareReplication()
         {
+            // Reset local stats BEFORE base so agents can use fresh collectors in their PrepareReplication
+            ResetLocalStats();
             base.PrepareReplication();
             SetSimSpeed(GuiInterval, GuiDurationMs > 0 ? GuiDurationMs / 1000.0 : 0.001);
             if (Zastavit)
@@ -102,9 +189,32 @@ namespace Simulation
             }
             Pacienti.Clear();
             PocetVybavenych = 0;
-            LocDobaVV = new StatisticsCollector();
-            LocDobaOsetrenie = new StatisticsCollector();
             AnimPriprav();
+            // Re-register OnRefreshUI here in case base.PrepareReplication() resets it
+            OnRefreshUI(_ => GuiTick?.Invoke(this));
+            ReplicationDidStart?.Invoke(this);
+        }
+
+        private void ResetLocalStats()
+        {
+            LocPocetPacienti = 0; LocPocetPeso = 0; LocPocetSanitka = 0;
+            LocDobaVV             = new StatisticsCollector();
+            LocDobaOsetrenie      = new StatisticsCollector();
+            LocDobaVSysteme       = new StatisticsCollector();
+            LocDobaVSystemePeso   = new StatisticsCollector();
+            LocDobaVSystemeSanitka= new StatisticsCollector();
+            LocDobaVVPeso         = new StatisticsCollector();
+            LocDobaVVSanitka      = new StatisticsCollector();
+            LocDobaOsetrenieA     = new StatisticsCollector();
+            LocDobaOsetrenieAB    = new StatisticsCollector();
+            LocDobaOsetrenieB     = new StatisticsCollector();
+            LocDobaPrichodDoOsetrenia       = new StatisticsCollector();
+            LocDobaPrichodDoOsetreniaPeso    = new StatisticsCollector();
+            LocDobaPrichodDoOsetreniaSanitka = new StatisticsCollector();
+            LocVytazenostLekari       = new WeightedStatisticsCollector();
+            LocVytazenostSestry       = new WeightedStatisticsCollector();
+            LocVytazenostMiestnostiA  = new WeightedStatisticsCollector();
+            LocVytazenostMiestnostiB  = new WeightedStatisticsCollector();
         }
 
         // ── Animation helpers ──────────────────────────────────────────
@@ -117,15 +227,18 @@ namespace Simulation
             anim.PrepareReplication(); // resets InternalSimTime → 0
 
             var oldPatients = _animPacienti.Values.ToList();
-            if (oldPatients.Count > 0)
-                anim.MyCanvas.Dispatcher.Invoke(() =>
-                {
-                    foreach (var item in oldPatients)
-                        try { anim.Remove(item); } catch { }
-                });
+            var oldMiestnosti = _animMiestnosti.ToList();
+            anim.MyCanvas.Dispatcher.Invoke(() =>
+            {
+                foreach (var item in oldPatients)
+                    try { anim.Remove(item); } catch { }
+                foreach (var item in oldMiestnosti)
+                    try { anim.Remove(item); } catch { }
+            });
             _animPacienti.Clear();
             _animPacientMiestnost.Clear();
             _animPacientStaff.Clear();
+            _animMiestnosti = new List<AnimShapeItem>();
 
             _animVolneSlotB.Clear();
             for (int i = 0; i < KonfMiestnostiB; i++) _animVolneSlotB.Enqueue(i);
@@ -133,8 +246,12 @@ namespace Simulation
             for (int i = 0; i < KonfMiestnostiA; i++) _animVolneSlotA.Enqueue(i);
 
             _animVolneSlotVV.Clear();  _animPacientVVSlot.Clear();  _animVVSlotMax = 0;
-            _animVolneSlotOse.Clear(); _animPacientOseSlot.Clear(); _animOseSlotMax = 0;
+            _animVolneSlotOse.Clear(); _animPacientOseSlot.Clear();
+            _sestraRoom.Clear();
+            _lekarRoom.Clear();
+            _pacientRoom.Clear();
 
+            AnimInitMiestnosti(anim);
             AnimInitSestry(anim);
             AnimInitLekari(anim);
         }
@@ -201,6 +318,68 @@ namespace Simulation
                 _animVolnyLekar.Enqueue(i);
         }
 
+        private void AnimInitMiestnosti(Animator anim)
+        {
+            const float roomH = 70f;
+            const float pad   = 20f;
+
+            anim.MyCanvas.Dispatcher.Invoke(() =>
+            {
+                void Pridaj(float cx, float cy, float w, float h, System.Windows.Media.Color color, string label)
+                {
+                    var item = new AnimShapeItem(AnimShape.RECTANGLE_EMPTY, color, h);
+                    item.Width  = w;
+                    item.Height = h;
+                    item.Label  = label;
+                    anim.Register(item);
+                    item.SetPosition(0.0, cx, cy);
+                    _animMiestnosti.Add(item);
+                }
+
+                // Ambulance rooms — A (CornflowerBlue) vs B (MediumAquamarine)
+                void PridajMiestnosti(bool isA, int total)
+                {
+                    float step  = SimAnim.RoomStep(total);
+                    float roomW = step * 0.88f;
+                    var   color = isA ? Colors.CornflowerBlue : Colors.MediumAquamarine;
+                    for (int i = 0; i < total; i++)
+                    {
+                        var (cx, cy) = SimAnim.RoomCenter(isA, i, KonfMiestnostiA, KonfMiestnostiB);
+                        Pridaj(cx, cy, roomW, roomH, color, (isA ? "A" : "B") + (i + 1));
+                    }
+                }
+                PridajMiestnosti(true,  KonfMiestnostiA);
+                PridajMiestnosti(false, KonfMiestnostiB);
+
+                // Patient entrance areas
+                Pridaj(SimAnim.PesiVstup.X, SimAnim.PesiVstup.Y, 84f, 44f, Colors.DarkOrange, "Vstup (peší)");
+                Pridaj(SimAnim.SanVstup.X,  SimAnim.SanVstup.Y,  84f, 44f, Colors.Crimson,    "Vstup (sanitka)");
+
+                // Staff idle areas — sized by config
+                (float W, float H) StaffSize(int n)
+                {
+                    int cols = Math.Min(n, 4);
+                    int rows = (n + 3) / 4;
+                    return (cols * 48f + pad, rows * 48f + pad);
+                }
+                (float CX, float CY) StaffCenter((float X, float Y) origin, int n)
+                {
+                    int cols = Math.Min(n, 4);
+                    int rows = (n + 3) / 4;
+                    return (origin.X + (cols - 1) * 24f,
+                            origin.Y + (rows - 1) * 24f);
+                }
+
+                var (wS, hS) = StaffSize(KonfSestry);
+                var (cxS, cyS) = StaffCenter(SimAnim.IdleSestra, KonfSestry);
+                Pridaj(cxS, cyS, wS, hS, Colors.MediumSeaGreen, "Sestry");
+
+                var (wL, hL) = StaffSize(KonfLekari);
+                var (cxL, cyL) = StaffCenter(SimAnim.IdleLekar, KonfLekari);
+                Pridaj(cxL, cyL, wL, hL, Colors.Goldenrod, "Lekári");
+            });
+        }
+
         // ── Public animation methods (called from managers/processes) ──
 
         public void AnimPacientPrisiel(int id, bool sanitka)
@@ -255,56 +434,65 @@ namespace Simulation
             _animPacientStaff[pacientId] = (si, -1);
         }
 
-        // Nurse walks to VV room over 'trvanie' sim-seconds
+        // Nurse walks to VV room over 'trvanie' sim-seconds (0 = already there)
         public void AnimSestryPohybDoMiestnosti(int pacientId, double trvanie)
         {
             if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return;
             if (!_animPacientStaff.TryGetValue(pacientId, out var staff) || staff.Sestra < 0) return;
             if (staff.Sestra >= _animSestry.Length) return;
+            _sestraRoom[staff.Sestra] = (room.IsA, room.Slot);
+            if (trvanie <= 0) return;
             var (sx, sy) = SimAnim.RoomStaffPos(room.IsA, room.Slot, 0, KonfMiestnostiA, KonfMiestnostiB);
             _animSestry[staff.Sestra].MoveTo(CurrentTime, trvanie, sx, sy);
         }
 
-        // Nurse and doctor walk to osetrenie room; each has its own duration
+        // Nurse and doctor walk to osetrenie room; each has its own duration (0 = already there)
         public void AnimStaffPohybDoMiestnosti(int pacientId, double trvanieSestra, double trvanieLekar)
         {
             if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return;
             if (!_animPacientStaff.TryGetValue(pacientId, out var staff)) return;
             if (staff.Sestra >= 0 && staff.Sestra < _animSestry.Length)
             {
-                var (sx, sy) = SimAnim.RoomStaffPos(room.IsA, room.Slot, 0, KonfMiestnostiA, KonfMiestnostiB);
-                _animSestry[staff.Sestra].MoveTo(CurrentTime, trvanieSestra, sx, sy);
+                _sestraRoom[staff.Sestra] = (room.IsA, room.Slot);
+                if (trvanieSestra > 0)
+                {
+                    var (sx, sy) = SimAnim.RoomStaffPos(room.IsA, room.Slot, 0, KonfMiestnostiA, KonfMiestnostiB);
+                    _animSestry[staff.Sestra].MoveTo(CurrentTime, trvanieSestra, sx, sy);
+                }
             }
             if (staff.Lekar >= 0 && staff.Lekar < _animLekari.Length)
             {
-                var (lx, ly) = SimAnim.RoomStaffPos(room.IsA, room.Slot, 1, KonfMiestnostiA, KonfMiestnostiB);
-                _animLekari[staff.Lekar].MoveTo(CurrentTime, trvanieLekar, lx, ly);
+                _lekarRoom[staff.Lekar] = (room.IsA, room.Slot);
+                if (trvanieLekar > 0)
+                {
+                    var (lx, ly) = SimAnim.RoomStaffPos(room.IsA, room.Slot, 1, KonfMiestnostiA, KonfMiestnostiB);
+                    _animLekari[staff.Lekar].MoveTo(CurrentTime, trvanieLekar, lx, ly);
+                }
             }
         }
 
-        // VV done: release room + nurse slot, patient goes to osetrenie queue
+        // VV done: release room + nurse slot; patient waits in front of their VV room
         public void AnimUvolniVV(int pacientId)
         {
             if (_animPacientMiestnost.TryGetValue(pacientId, out var room))
             {
                 _animVolneSlotB.Enqueue(room.Slot);
                 _animPacientMiestnost.Remove(pacientId);
+                if (_animPacienti.TryGetValue(pacientId, out var item))
+                {
+                    var (cx, cy) = SimAnim.RoomCenter(false, room.Slot, KonfMiestnostiA, KonfMiestnostiB);
+                    item.SetPosition(CurrentTime, cx, cy + 50f);
+                }
             }
             if (_animPacientStaff.TryGetValue(pacientId, out var staff))
             {
                 if (staff.Sestra >= 0 && staff.Sestra < _animSestry.Length)
-                    _animVolnaSestra.Enqueue(staff.Sestra);  // return slot; nurse stays where she is
+                    _animVolnaSestra.Enqueue(staff.Sestra);
                 _animPacientStaff.Remove(pacientId);
             }
-            // Patient moves to osetrenie queue
-            int slot = _animVolneSlotOse.Count > 0 ? _animVolneSlotOse.Dequeue() : _animOseSlotMax++;
-            _animPacientOseSlot[pacientId] = slot;
-            var (ox, oy) = SimAnim.QueuePos(SimAnim.OseRad, slot);
-            if (_animPacienti.TryGetValue(pacientId, out var item))
-                item.SetPosition(CurrentTime, ox, oy);
         }
 
-        // Osetrenie resources allocated: patient moves to room, nurse+doctor slots reserved
+        // Osetrenie resources allocated: nurse+doctor slots reserved; patient walks separately via AnimPacientPohybDoOsetrenia
         public void AnimAllocOsetrenieRoom(int pacientId, bool isA)
         {
             if (_animPacientOseSlot.TryGetValue(pacientId, out var qslot))
@@ -316,15 +504,43 @@ namespace Simulation
             if (pool.Count == 0) return;
             int slot = pool.Dequeue();
             _animPacientMiestnost[pacientId] = (isA, slot);
-            var (px, py) = SimAnim.RoomPatientPos(isA, slot, KonfMiestnostiA, KonfMiestnostiB);
-            if (_animPacienti.TryGetValue(pacientId, out var item))
-                item.SetPosition(CurrentTime, px, py);
             int si = _animVolnaSestra.Count > 0 ? _animVolnaSestra.Dequeue() : 0;
             int li = _animVolnyLekar.Count > 0 ? _animVolnyLekar.Dequeue() : 0;
             _animPacientStaff[pacientId] = (si, li);
         }
 
-        // Osetrenie done: release room + staff slots; staff stays in the room
+        // Patient walks to osetrenie room over 'trvanie' sim-seconds (0 = already there)
+        public void AnimPacientPohybDoOsetrenia(int pacientId, double trvanie)
+        {
+            if (!_animPacienti.TryGetValue(pacientId, out var item)) return;
+            if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return;
+            _pacientRoom[pacientId] = (room.IsA, room.Slot);
+            if (trvanie <= 0) return;
+            var (px, py) = SimAnim.RoomPatientPos(room.IsA, room.Slot, KonfMiestnostiA, KonfMiestnostiB);
+            item.MoveTo(CurrentTime, trvanie, px, py);
+        }
+
+        public bool SestraJeUzVMiestnosti(int pacientId)
+        {
+            if (!_animPacientStaff.TryGetValue(pacientId, out var staff) || staff.Sestra < 0) return false;
+            if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return false;
+            return _sestraRoom.TryGetValue(staff.Sestra, out var r) && r.IsA == room.IsA && r.Slot == room.Slot;
+        }
+
+        public bool LekarJeUzVMiestnosti(int pacientId)
+        {
+            if (!_animPacientStaff.TryGetValue(pacientId, out var staff) || staff.Lekar < 0) return false;
+            if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return false;
+            return _lekarRoom.TryGetValue(staff.Lekar, out var r) && r.IsA == room.IsA && r.Slot == room.Slot;
+        }
+
+        public bool PacientJeUzVMiestnosti(int pacientId)
+        {
+            if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return false;
+            return _pacientRoom.TryGetValue(pacientId, out var r) && r.IsA == room.IsA && r.Slot == room.Slot;
+        }
+
+        // Osetrenie done: release room + staff slots; patient waits in front of their ambulance
         public void AnimUvolniOsetrenie(int pacientId)
         {
             if (_animPacientMiestnost.TryGetValue(pacientId, out var room))
@@ -332,13 +548,19 @@ namespace Simulation
                 if (room.IsA) _animVolneSlotA.Enqueue(room.Slot);
                 else          _animVolneSlotB.Enqueue(room.Slot);
                 _animPacientMiestnost.Remove(pacientId);
+                _pacientRoom[pacientId] = (room.IsA, room.Slot);
+                if (_animPacienti.TryGetValue(pacientId, out var item))
+                {
+                    var (cx, cy) = SimAnim.RoomCenter(room.IsA, room.Slot, KonfMiestnostiA, KonfMiestnostiB);
+                    item.SetPosition(CurrentTime, cx, cy + 50f);
+                }
             }
             if (_animPacientStaff.TryGetValue(pacientId, out var staff))
             {
                 if (staff.Sestra >= 0 && staff.Sestra < _animSestry.Length)
-                    _animVolnaSestra.Enqueue(staff.Sestra);  // return slot; nurse stays where she is
+                    _animVolnaSestra.Enqueue(staff.Sestra);
                 if (staff.Lekar >= 0 && staff.Lekar < _animLekari.Length)
-                    _animVolnyLekar.Enqueue(staff.Lekar);    // return slot; doctor stays where he is
+                    _animVolnyLekar.Enqueue(staff.Lekar);
                 _animPacientStaff.Remove(pacientId);
             }
         }
@@ -351,6 +573,7 @@ namespace Simulation
             if (!_animPacienti.TryGetValue(id, out var item)) return;
             anim.MyCanvas.Dispatcher.Invoke(() => anim.Remove(item));
             _animPacienti.Remove(id);
+            _pacientRoom.Remove(id);
         }
 
         //meta! userInfo="Generated code: do not modify", tag="begin"

@@ -1,6 +1,7 @@
 using OSPABA;
 using Simulation;
 using Agents.AgentZdrojov.InstantAssistants;
+using DIS_Semestralka_S3_Nemocnica.Collectors;
 
 namespace Agents.AgentZdrojov
 {
@@ -23,6 +24,7 @@ namespace Agents.AgentZdrojov
 			{
 				PetriNet.Clear();
 			}
+			ZaznamVytazenosti(); // initialize weighted utilization at t=0
 		}
 
 		//meta! sender="AgentUrgentu", id="127", type="Notice"
@@ -43,6 +45,7 @@ namespace Agents.AgentZdrojov
 		public void ProcessUvolnenieAmbulancie(MessageForm message)
 		{
             ((UvolnenieZdrojov)MyAgent.FindAssistant(SimId.UvolnenieZdrojov)).Execute(message);
+            ZaznamVytazenosti();
             SkusSpustitVV();
             SkusSpustitOsetrenie();
         }
@@ -53,9 +56,15 @@ namespace Agents.AgentZdrojov
 
 			var msg = MyAgent.RadVV.Dequeue();
 			MyAgent.RadVVIds.Remove(msg.PacientId);
-			Sim.LocDobaVV.AddValue(MySim.CurrentTime - msg.CasVstupuDoRadu);
+			double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
+			Sim.LocDobaVV.AddValue(wait);
+			if (msg.PrisielSanitkou)
+				Sim.LocDobaVVSanitka.AddValue(wait);
+			else
+				Sim.LocDobaVVPeso.AddValue(wait);
 
 			((PriradenieZdrojovPreVstupneVysetrenie)MyAgent.FindAssistant(SimId.PriradenieZdrojovPreVstupneVysetrenie)).Execute(msg);
+			ZaznamVytazenosti();
 
 			msg.Code = Mc.ZdrojePrideleneVV;
 			msg.Addressee = MySim.FindAgent(SimId.AgentUrgentu);
@@ -64,37 +73,74 @@ namespace Agents.AgentZdrojov
 
 		private void SkusSpustitOsetrenie()
 		{
-			if (MyAgent.RadOsetrenie.Count == 0 || MyAgent.VolneLekari == 0 || MyAgent.VolneSestry == 0) return;
+			if (MyAgent.VolneLekari == 0 || MyAgent.VolneSestry == 0) return;
 
-			MyAgent.RadOsetrenie.TryPeek(out var pacient, out _);
-			bool pouzijA;
-			if (pacient!.Priorita <= 2)
+			// RadA (priorita 1-2): len miestnosť A
+			if (MyAgent.RadA.Count > 0 && MyAgent.VolneMiestnostiA > 0)
 			{
-				if (MyAgent.VolneMiestnostiA == 0) return;
-				pouzijA = true;
-			}
-			else if (pacient.Priorita <= 4)
-			{
-				if      (MyAgent.VolneMiestnostiB > 0) pouzijA = false;
-				else if (MyAgent.VolneMiestnostiA > 0) pouzijA = true;
-				else return;
-			}
-			else
-			{
-				if (MyAgent.VolneMiestnostiB == 0) return;
-				pouzijA = false;
+				ServeOsetrenie(MyAgent.RadA, MyAgent.RadAItems, true, Sim.LocDobaOsetrenieA);
+				return;
 			}
 
-			MyAgent.RadOsetrenie.Dequeue();
-			MyAgent.RadOsetreniaItems.RemoveAll(x => x.Id == pacient.PacientId);
-			Sim.LocDobaOsetrenie.AddValue(MySim.CurrentTime - pacient.CasVstupuDoRadu);
-			pacient.PouzilaMiestnostA = pouzijA;
+			// RadAB (priorita 3-4): preferovane B, fallback A ak RadA prázdne
+			if (MyAgent.RadAB.Count > 0)
+			{
+				bool useA;
+				if      (MyAgent.VolneMiestnostiB > 0)                             useA = false;
+				else if (MyAgent.VolneMiestnostiA > 0 && MyAgent.RadA.Count == 0) useA = true;
+				else    return;
 
-			((PriradenieZdrojovPreOsetrenie)MyAgent.FindAssistant(SimId.PriradenieZdrojovPreOsetrenie)).Execute(pacient);
+				ServeOsetrenie(MyAgent.RadAB, MyAgent.RadABItems, useA, Sim.LocDobaOsetrenieAB);
+				return;
+			}
 
-			pacient.Code = Mc.ZdrojePrideleneOsetrenie;
-			pacient.Addressee = MySim.FindAgent(SimId.AgentUrgentu);
-			Notice(pacient);
+			// RadB (priorita 5): len miestnosť B
+			if (MyAgent.RadB.Count > 0 && MyAgent.VolneMiestnostiB > 0)
+			{
+				ServeOsetrenie(MyAgent.RadB, MyAgent.RadBItems, false, Sim.LocDobaOsetrenieB);
+			}
+		}
+
+		private void ServeOsetrenie(
+			PriorityQueue<MyMessage, (int, int)> rad,
+			List<(int Id, int Priorita)> items,
+			bool pouzijA,
+			StatisticsCollector specificStat)
+		{
+			var msg = rad.Dequeue();
+			items.RemoveAll(x => x.Id == msg.PacientId);
+			double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
+			Sim.LocDobaOsetrenie.AddValue(wait);
+			specificStat.AddValue(wait);
+			if (Sim.Pacienti.TryGetValue(msg.PacientId, out var pacInfo))
+			{
+				double dobaPDO = MySim.CurrentTime - pacInfo.CasPrichodu;
+				Sim.LocDobaPrichodDoOsetrenia.AddValue(dobaPDO);
+				if (pacInfo.PrisielSanitkou)
+					Sim.LocDobaPrichodDoOsetreniaSanitka.AddValue(dobaPDO);
+				else
+					Sim.LocDobaPrichodDoOsetreniaPeso.AddValue(dobaPDO);
+			}
+			msg.PouzilaMiestnostA = pouzijA;
+			((PriradenieZdrojovPreOsetrenie)MyAgent.FindAssistant(SimId.PriradenieZdrojovPreOsetrenie)).Execute(msg);
+			ZaznamVytazenosti();
+			msg.Code = Mc.ZdrojePrideleneOsetrenie;
+			msg.Addressee = MySim.FindAgent(SimId.AgentUrgentu);
+			Notice(msg);
+		}
+
+		private void ZaznamVytazenosti()
+		{
+			var a = MyAgent;
+			double t = MySim.CurrentTime;
+			Sim.LocVytazenostLekari.AddWeightedValue(
+				a.TotalLekari > 0 ? (double)(a.TotalLekari - a.VolneLekari) / a.TotalLekari : 0, t);
+			Sim.LocVytazenostSestry.AddWeightedValue(
+				a.TotalSestry > 0 ? (double)(a.TotalSestry - a.VolneSestry) / a.TotalSestry : 0, t);
+			Sim.LocVytazenostMiestnostiA.AddWeightedValue(
+				a.TotalMiestnostiA > 0 ? (double)(a.TotalMiestnostiA - a.VolneMiestnostiA) / a.TotalMiestnostiA : 0, t);
+			Sim.LocVytazenostMiestnostiB.AddWeightedValue(
+				a.TotalMiestnostiB > 0 ? (double)(a.TotalMiestnostiB - a.VolneMiestnostiB) / a.TotalMiestnostiB : 0, t);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"

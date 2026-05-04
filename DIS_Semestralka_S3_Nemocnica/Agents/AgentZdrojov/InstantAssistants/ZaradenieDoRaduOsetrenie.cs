@@ -16,8 +16,21 @@ namespace Agents.AgentZdrojov.InstantAssistants
 		{
 			var msg = (MyMessage)message;
 			msg.CasVstupuDoRadu = MySim.CurrentTime;
-			MyAgent.RadOsetrenie.Enqueue(msg, (msg.Priorita, msg.PacientId));
-			MyAgent.RadOsetreniaItems.Add((msg.PacientId, msg.Priorita));
+			if (msg.Priorita <= 2)
+			{
+				MyAgent.RadA.Enqueue(msg, (msg.Priorita, msg.PacientId));
+				MyAgent.RadAItems.Add((msg.PacientId, msg.Priorita));
+			}
+			else if (msg.Priorita <= 4)
+			{
+				MyAgent.RadAB.Enqueue(msg, (msg.Priorita, msg.PacientId));
+				MyAgent.RadABItems.Add((msg.PacientId, msg.Priorita));
+			}
+			else
+			{
+				MyAgent.RadB.Enqueue(msg, (msg.Priorita, msg.PacientId));
+				MyAgent.RadBItems.Add((msg.PacientId, msg.Priorita));
+			}
 		}
 		public new AgentZdrojov MyAgent
 		{

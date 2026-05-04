@@ -66,7 +66,7 @@ namespace Agents.AgentOkolia.ContinualAssistants
 
 		private double VygenerujCas()
 		{
-			return _exp.Generate() - 0.001;
+			return _exp.Generate();
 		}
 	}
 }

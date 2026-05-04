@@ -66,9 +66,25 @@ namespace Agents.AgentOkolia
 		public void ProcessOdchodPacienta(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			((MySimulation)MySim).AnimPacientOdsiel(msg.PacientId);
-			((MySimulation)MySim).Pacienti.TryRemove(msg.PacientId, out _);
-			((MySimulation)MySim).PocetVybavenych++;
+			var sim = (MySimulation)MySim;
+			sim.AnimPacientOdsiel(msg.PacientId);
+			if (sim.Pacienti.TryRemove(msg.PacientId, out var info))
+			{
+				double dobaVSysteme = MySim.CurrentTime - info.CasPrichodu;
+				sim.LocDobaVSysteme.AddValue(dobaVSysteme);
+				sim.LocPocetPacienti++;
+				if (info.PrisielSanitkou)
+				{
+					sim.LocDobaVSystemeSanitka.AddValue(dobaVSysteme);
+					sim.LocPocetSanitka++;
+				}
+				else
+				{
+					sim.LocDobaVSystemePeso.AddValue(dobaVSysteme);
+					sim.LocPocetPeso++;
+				}
+			}
+			sim.PocetVybavenych++;
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"

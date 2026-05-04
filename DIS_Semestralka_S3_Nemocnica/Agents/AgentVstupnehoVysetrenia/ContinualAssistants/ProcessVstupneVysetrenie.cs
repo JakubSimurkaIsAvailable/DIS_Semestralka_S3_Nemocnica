@@ -20,7 +20,7 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 				new List<double> { 3 * 60, 5 * 60 },
 				new List<double> { 5 * 60, 9 * 60 },
 				new List<double> { 0.6, 0.4 });
-			discreteRNG = new RozdelenieDiskretne(seed, 4, 8);
+			discreteRNG = new RozdelenieDiskretne(seed, 4, 9); // {4,5,6,7,8} minút
 		}
 
 		override public void PrepareReplication()
@@ -33,7 +33,7 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 		{
 			var msg = (MyMessage)message;
 			double trvanie = msg.PrisielSanitkou
-				? discreteRNG.Generate()
+				? (double)discreteRNG.Generate() * 60.0
 				: empiricRNG.Generate();
 			message.Code = Mc.VstupneVysetrenieSkoncilo;
 			Hold(trvanie, message);

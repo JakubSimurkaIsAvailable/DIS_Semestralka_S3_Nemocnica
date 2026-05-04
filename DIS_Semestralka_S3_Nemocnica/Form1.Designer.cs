@@ -24,6 +24,9 @@ namespace DIS_Semestralka_S3_Nemocnica
             btnSpustit = new System.Windows.Forms.Button();
             btnZastavit = new System.Windows.Forms.Button();
             btnPauza = new System.Windows.Forms.Button();
+            btnMaxSpeed = new System.Windows.Forms.Button();
+            btnReplikacie = new System.Windows.Forms.Button();
+            btnVysledky = new System.Windows.Forms.Button();
             pnlKonfZdrojov = new System.Windows.Forms.FlowLayoutPanel();
             lblSestryKonfLabel = new System.Windows.Forms.Label();
             nudSestry = new System.Windows.Forms.NumericUpDown();
@@ -69,8 +72,18 @@ namespace DIS_Semestralka_S3_Nemocnica
             scRady = new System.Windows.Forms.SplitContainer();
             lblRadVVCount = new System.Windows.Forms.Label();
             lbRadVV = new System.Windows.Forms.ListBox();
-            lblRadOsetrenieCount = new System.Windows.Forms.Label();
-            lbRadOsetrenie = new System.Windows.Forms.ListBox();
+            tlpRady = new System.Windows.Forms.TableLayoutPanel();
+            pnlRadA = new System.Windows.Forms.Panel();
+            lblRadACount = new System.Windows.Forms.Label();
+            lbRadA = new System.Windows.Forms.ListBox();
+            pnlRadAB = new System.Windows.Forms.Panel();
+            lblRadABCount = new System.Windows.Forms.Label();
+            lbRadAB = new System.Windows.Forms.ListBox();
+            pnlRadB = new System.Windows.Forms.Panel();
+            lblRadBCount = new System.Windows.Forms.Label();
+            lbRadB = new System.Windows.Forms.ListBox();
+            tpStatistiky = new System.Windows.Forms.TabPage();
+            dgvStat = new System.Windows.Forms.DataGridView();
             tpAnimator = new System.Windows.Forms.TabPage();
             pnlAnimator = new System.Windows.Forms.Panel();
 
@@ -84,6 +97,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             ((System.ComponentModel.ISupportInitialize)trkDuration).BeginInit();
             ((System.ComponentModel.ISupportInitialize)trkInterval).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvPacienti).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvStat).BeginInit();
             pnlTop.SuspendLayout();
             pnlKonfZdrojov.SuspendLayout();
             pnlSpeed.SuspendLayout();
@@ -96,6 +110,10 @@ namespace DIS_Semestralka_S3_Nemocnica
             scRady.Panel1.SuspendLayout();
             scRady.Panel2.SuspendLayout();
             scRady.SuspendLayout();
+            tlpRady.SuspendLayout();
+            pnlRadA.SuspendLayout();
+            pnlRadAB.SuspendLayout();
+            pnlRadB.SuspendLayout();
             tpAnimator.SuspendLayout();
             SuspendLayout();
 
@@ -110,6 +128,9 @@ namespace DIS_Semestralka_S3_Nemocnica
             pnlTop.Controls.Add(btnSpustit);
             pnlTop.Controls.Add(btnZastavit);
             pnlTop.Controls.Add(btnPauza);
+            pnlTop.Controls.Add(btnMaxSpeed);
+            pnlTop.Controls.Add(btnReplikacie);
+            pnlTop.Controls.Add(btnVysledky);
             pnlTop.BackColor = System.Drawing.SystemColors.ControlLight;
             pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
             pnlTop.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
@@ -126,7 +147,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             nudTrvanie.Margin = new System.Windows.Forms.Padding(2, 4, 10, 0);
             nudTrvanie.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             nudTrvanie.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            nudTrvanie.Value = new decimal(new int[] { 24, 0, 0, 0 });
+            nudTrvanie.Value = new decimal(new int[] { 672, 0, 0, 0 });
             nudTrvanie.Width = 55;
 
             // lblReplikacieLabel
@@ -184,6 +205,30 @@ namespace DIS_Semestralka_S3_Nemocnica
             btnPauza.Text = "⏸  Pauza";
             btnPauza.UseVisualStyleBackColor = false;
             btnPauza.Click += BtnPauza_Click;
+
+            // btnMaxSpeed
+            btnMaxSpeed.BackColor = System.Drawing.Color.LightGray;
+            btnMaxSpeed.Margin = new System.Windows.Forms.Padding(20, 4, 4, 0);
+            btnMaxSpeed.Size = new System.Drawing.Size(130, 28);
+            btnMaxSpeed.Text = "⚡ Max Speed: VYP";
+            btnMaxSpeed.UseVisualStyleBackColor = false;
+            btnMaxSpeed.Click += BtnMaxSpeed_Click;
+
+            // btnReplikacie
+            btnReplikacie.BackColor = System.Drawing.Color.LightSteelBlue;
+            btnReplikacie.Margin = new System.Windows.Forms.Padding(20, 4, 4, 0);
+            btnReplikacie.Size = new System.Drawing.Size(110, 28);
+            btnReplikacie.Text = "📈 Replikácie";
+            btnReplikacie.UseVisualStyleBackColor = false;
+            btnReplikacie.Click += BtnReplikacie_Click;
+
+            // btnVysledky
+            btnVysledky.BackColor = System.Drawing.Color.LightSteelBlue;
+            btnVysledky.Margin = new System.Windows.Forms.Padding(4, 4, 4, 0);
+            btnVysledky.Size = new System.Drawing.Size(100, 28);
+            btnVysledky.Text = "📊 Výsledky";
+            btnVysledky.UseVisualStyleBackColor = false;
+            btnVysledky.Click += BtnVysledky_Click;
 
             // pnlKonfZdrojov
             pnlKonfZdrojov.Controls.Add(lblSestryKonfLabel);
@@ -336,6 +381,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             tabControl.Controls.Add(tpPacienti);
             tabControl.Controls.Add(tpZdroje);
             tabControl.Controls.Add(tpRady);
+            tabControl.Controls.Add(tpStatistiky);
             tabControl.Controls.Add(tpAnimator);
             tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
 
@@ -467,15 +513,72 @@ namespace DIS_Semestralka_S3_Nemocnica
 
             lbRadVV.Dock = System.Windows.Forms.DockStyle.Fill;
 
-            scRady.Panel2.Controls.Add(lbRadOsetrenie);
-            scRady.Panel2.Controls.Add(lblRadOsetrenieCount);
+            scRady.Panel2.Controls.Add(tlpRady);
 
-            lblRadOsetrenieCount.Dock = System.Windows.Forms.DockStyle.Top;
-            lblRadOsetrenieCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            lblRadOsetrenieCount.Height = 22;
-            lblRadOsetrenieCount.Text = "Rad ošetrenie (0)";
+            tlpRady.Dock = System.Windows.Forms.DockStyle.Fill;
+            tlpRady.ColumnCount = 1;
+            tlpRady.RowCount = 3;
+            tlpRady.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tlpRady.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33F));
+            tlpRady.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33F));
+            tlpRady.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.34F));
+            tlpRady.Controls.Add(pnlRadA, 0, 0);
+            tlpRady.Controls.Add(pnlRadAB, 0, 1);
+            tlpRady.Controls.Add(pnlRadB, 0, 2);
 
-            lbRadOsetrenie.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlRadA.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlRadA.Controls.Add(lbRadA);
+            pnlRadA.Controls.Add(lblRadACount);
+
+            lblRadACount.Dock = System.Windows.Forms.DockStyle.Top;
+            lblRadACount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            lblRadACount.Height = 22;
+            lblRadACount.Text = "Rad A – priorita 1-2 (0)";
+
+            lbRadA.Dock = System.Windows.Forms.DockStyle.Fill;
+
+            pnlRadAB.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlRadAB.Controls.Add(lbRadAB);
+            pnlRadAB.Controls.Add(lblRadABCount);
+
+            lblRadABCount.Dock = System.Windows.Forms.DockStyle.Top;
+            lblRadABCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            lblRadABCount.Height = 22;
+            lblRadABCount.Text = "Rad A/B – priorita 3-4 (0)";
+
+            lbRadAB.Dock = System.Windows.Forms.DockStyle.Fill;
+
+            pnlRadB.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlRadB.Controls.Add(lbRadB);
+            pnlRadB.Controls.Add(lblRadBCount);
+
+            lblRadBCount.Dock = System.Windows.Forms.DockStyle.Top;
+            lblRadBCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            lblRadBCount.Height = 22;
+            lblRadBCount.Text = "Rad B – priorita 5 (0)";
+
+            lbRadB.Dock = System.Windows.Forms.DockStyle.Fill;
+
+            // tpStatistiky
+            tpStatistiky.Controls.Add(dgvStat);
+            tpStatistiky.Text = "Štatistiky";
+
+            // dgvStat
+            dgvStat.AllowUserToAddRows = false;
+            dgvStat.AllowUserToDeleteRows = false;
+            dgvStat.AllowUserToResizeRows = false;
+            dgvStat.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.None;
+            dgvStat.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvStat.Dock = System.Windows.Forms.DockStyle.Fill;
+            dgvStat.ReadOnly = true;
+            dgvStat.RowHeadersVisible = false;
+            dgvStat.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            dgvStat.Columns.Add("colNazov",    "Štatistika");
+            dgvStat.Columns.Add("colReplikacia", "Replikácia");
+            dgvStat.Columns.Add("colPriemer",  "Celkový priemer (±95% CI)");
+            dgvStat.Columns["colNazov"]!.Width    = 220;
+            dgvStat.Columns["colReplikacia"]!.Width = 160;
+            dgvStat.Columns["colPriemer"]!.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
 
             // tpAnimator
             tpAnimator.Controls.Add(pnlAnimator);
@@ -506,6 +609,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             ((System.ComponentModel.ISupportInitialize)trkDuration).EndInit();
             ((System.ComponentModel.ISupportInitialize)trkInterval).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgvPacienti).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvStat).EndInit();
             pnlTop.ResumeLayout(false);
             pnlTop.PerformLayout();
             pnlKonfZdrojov.ResumeLayout(false);
@@ -518,6 +622,10 @@ namespace DIS_Semestralka_S3_Nemocnica
             tlpZdroje.ResumeLayout(false);
             tlpZdroje.PerformLayout();
             tpZdroje.ResumeLayout(false);
+            tlpRady.ResumeLayout(false);
+            pnlRadA.ResumeLayout(false);
+            pnlRadAB.ResumeLayout(false);
+            pnlRadB.ResumeLayout(false);
             scRady.Panel1.ResumeLayout(false);
             scRady.Panel2.ResumeLayout(false);
             scRady.ResumeLayout(false);
@@ -583,9 +691,22 @@ namespace DIS_Semestralka_S3_Nemocnica
         private System.Windows.Forms.SplitContainer scRady;
         private System.Windows.Forms.Label lblRadVVCount;
         private System.Windows.Forms.ListBox lbRadVV;
-        private System.Windows.Forms.Label lblRadOsetrenieCount;
-        private System.Windows.Forms.ListBox lbRadOsetrenie;
+        private System.Windows.Forms.TableLayoutPanel tlpRady;
+        private System.Windows.Forms.Panel pnlRadA;
+        private System.Windows.Forms.Label lblRadACount;
+        private System.Windows.Forms.ListBox lbRadA;
+        private System.Windows.Forms.Panel pnlRadAB;
+        private System.Windows.Forms.Label lblRadABCount;
+        private System.Windows.Forms.ListBox lbRadAB;
+        private System.Windows.Forms.Panel pnlRadB;
+        private System.Windows.Forms.Label lblRadBCount;
+        private System.Windows.Forms.ListBox lbRadB;
+        private System.Windows.Forms.TabPage tpStatistiky;
+        private System.Windows.Forms.DataGridView dgvStat;
         private System.Windows.Forms.TabPage tpAnimator;
         private System.Windows.Forms.Panel pnlAnimator;
+        private System.Windows.Forms.Button btnMaxSpeed;
+        private System.Windows.Forms.Button btnReplikacie;
+        private System.Windows.Forms.Button btnVysledky;
     }
 }

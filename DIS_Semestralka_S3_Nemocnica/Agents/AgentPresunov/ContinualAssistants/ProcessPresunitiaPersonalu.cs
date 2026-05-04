@@ -30,14 +30,16 @@ namespace Agents.AgentPresunov.ContinualAssistants
 			double cas;
 			if (msg.JePresunNaOsetrenie)
 			{
-				double tSestra = _presunPersonalu.Generate();
-				double tLekar  = _presunPersonalu.Generate();
-				cas = Math.Max(tSestra, tLekar);
+				double tSestra  = sim.SestraJeUzVMiestnosti(msg.PacientId)  ? 0 : _presunPersonalu.Generate();
+				double tLekar   = sim.LekarJeUzVMiestnosti(msg.PacientId)   ? 0 : _presunPersonalu.Generate();
+				double tPacient = sim.PacientJeUzVMiestnosti(msg.PacientId) ? 0 : _presunPersonalu.Generate();
+				cas = Math.Max(Math.Max(tSestra, tLekar), tPacient);
 				sim.AnimStaffPohybDoMiestnosti(msg.PacientId, tSestra, tLekar);
+				sim.AnimPacientPohybDoOsetrenia(msg.PacientId, tPacient);
 			}
 			else
 			{
-				cas = _presunPersonalu.Generate();
+				cas = sim.SestraJeUzVMiestnosti(msg.PacientId) ? 0 : _presunPersonalu.Generate();
 				sim.AnimSestryPohybDoMiestnosti(msg.PacientId, cas);
 			}
 			message.Code = Mc.PresunutiePersonaluSkoncilo;
