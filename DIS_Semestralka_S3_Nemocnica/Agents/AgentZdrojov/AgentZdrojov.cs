@@ -1,6 +1,7 @@
 using OSPABA;
 using Simulation;
 using Agents.AgentZdrojov.InstantAssistants;
+using DIS_Semestralka_S3_Nemocnica.Collectors;
 
 namespace Agents.AgentZdrojov
 {
@@ -26,6 +27,53 @@ namespace Agents.AgentZdrojov
 		public List<(int Id, int Priorita)> RadABItems { get; } = new();
 		public List<(int Id, int Priorita)> RadBItems  { get; } = new();
 
+		// ── Lokálne štatistiky (reset na začiatku každej replikácie) ──
+		public StatisticsCollector LocDobaVV             { get; private set; } = new();
+		public StatisticsCollector LocDobaVVPeso         { get; private set; } = new();
+		public StatisticsCollector LocDobaVVSanitka      { get; private set; } = new();
+		public StatisticsCollector LocDobaOsetrenie      { get; private set; } = new();
+		public StatisticsCollector LocDobaOsetrenieA     { get; private set; } = new();
+		public StatisticsCollector LocDobaOsetrenieAB    { get; private set; } = new();
+		public StatisticsCollector LocDobaOsetrenieB     { get; private set; } = new();
+		public StatisticsCollector LocDobaPrichodDoOsetrenia        { get; private set; } = new();
+		public StatisticsCollector LocDobaPrichodDoOsetreniaPeso    { get; private set; } = new();
+		public StatisticsCollector LocDobaPrichodDoOsetreniaSanitka { get; private set; } = new();
+		public WeightedStatisticsCollector LocVytazenostLekari      { get; private set; } = new();
+		public WeightedStatisticsCollector LocVytazenostSestry      { get; private set; } = new();
+		public WeightedStatisticsCollector LocVytazenostMiestnostiA { get; private set; } = new();
+		public WeightedStatisticsCollector LocVytazenostMiestnostiB { get; private set; } = new();
+
+		public void ResetLocalStats()
+		{
+			LocDobaVV             = new StatisticsCollector();
+			LocDobaVVPeso         = new StatisticsCollector();
+			LocDobaVVSanitka      = new StatisticsCollector();
+			LocDobaOsetrenie      = new StatisticsCollector();
+			LocDobaOsetrenieA     = new StatisticsCollector();
+			LocDobaOsetrenieAB    = new StatisticsCollector();
+			LocDobaOsetrenieB     = new StatisticsCollector();
+			LocDobaPrichodDoOsetrenia        = new StatisticsCollector();
+			LocDobaPrichodDoOsetreniaPeso    = new StatisticsCollector();
+			LocDobaPrichodDoOsetreniaSanitka = new StatisticsCollector();
+			LocVytazenostLekari      = new WeightedStatisticsCollector();
+			LocVytazenostSestry      = new WeightedStatisticsCollector();
+			LocVytazenostMiestnostiA = new WeightedStatisticsCollector();
+			LocVytazenostMiestnostiB = new WeightedStatisticsCollector();
+		}
+
+		public void ResetLocalStatsAtWarmupEnd(double currentTime)
+		{
+			ResetLocalStats();
+			if (TotalLekari > 0)
+				LocVytazenostLekari.AddWeightedValue((double)(TotalLekari - VolneLekari) / TotalLekari, currentTime);
+			if (TotalSestry > 0)
+				LocVytazenostSestry.AddWeightedValue((double)(TotalSestry - VolneSestry) / TotalSestry, currentTime);
+			if (TotalMiestnostiA > 0)
+				LocVytazenostMiestnostiA.AddWeightedValue((double)(TotalMiestnostiA - VolneMiestnostiA) / TotalMiestnostiA, currentTime);
+			if (TotalMiestnostiB > 0)
+				LocVytazenostMiestnostiB.AddWeightedValue((double)(TotalMiestnostiB - VolneMiestnostiB) / TotalMiestnostiB, currentTime);
+		}
+
 		public AgentZdrojov(int id, OSPABA.Simulation mySim, Agent parent) :
 			base(id, mySim, parent)
 		{
@@ -34,7 +82,6 @@ namespace Agents.AgentZdrojov
 
 		override public void PrepareReplication()
 		{
-			base.PrepareReplication();
 			var sim = (MySimulation)MySim;
 			TotalSestry = sim.KonfSestry;
 			TotalLekari = sim.KonfLekari;
@@ -44,6 +91,8 @@ namespace Agents.AgentZdrojov
 			VolneLekari = TotalLekari;
 			VolneMiestnostiA = TotalMiestnostiA;
 			VolneMiestnostiB = TotalMiestnostiB;
+			ResetLocalStats();
+			base.PrepareReplication(); // ManagerZdrojov.ZaznamVytazenosti() zapíše využitie=0 pri t=0 ✓
 			RadVV.Clear();
 			RadA.Clear();
 			RadAB.Clear();

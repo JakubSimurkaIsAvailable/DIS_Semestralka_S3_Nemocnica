@@ -105,19 +105,29 @@ namespace DIS_Semestralka_S3_Nemocnica
             }
 
             int n = vals.Length;
-            double[] xs = new double[n];
-            double[] ys = new double[n];
+            double[] xs      = new double[n];
+            double[] ys      = new double[n];
+            double[] cumAvgs = new double[n];
+            double sum = 0;
             for (int i = 0; i < n; i++)
             {
-                xs[i] = i + 1;
-                ys[i] = e.Transform(vals[i]);
+                xs[i]      = i + 1;
+                ys[i]      = e.Transform(vals[i]);
+                sum       += vals[i];
+                cumAvgs[i] = e.Transform(sum / (i + 1));
             }
 
             var sc = plt.Add.Scatter(xs, ys);
-            sc.Color      = ScottPlot.Color.FromHex("#2196F3");
+            sc.Color      = ScottPlot.Color.FromHex("#90CAF9");
             sc.MarkerSize = 5;
-            sc.LineWidth  = 1.5f;
+            sc.LineWidth  = 0;
             sc.LegendText = "hodnota replikácie";
+
+            var scAvg = plt.Add.Scatter(xs, cumAvgs);
+            scAvg.Color      = ScottPlot.Color.FromHex("#1565C0");
+            scAvg.MarkerSize = 0;
+            scAvg.LineWidth  = 2f;
+            scAvg.LegendText = "kumulatívny priemer";
 
             var ci = coll.GetConfidenceInterval();
             if (ci.HasValue)

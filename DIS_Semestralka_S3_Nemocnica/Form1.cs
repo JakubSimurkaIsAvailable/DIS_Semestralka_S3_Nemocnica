@@ -56,10 +56,11 @@ namespace DIS_Semestralka_S3_Nemocnica
             else
                 _sim.NastavSeed((int)nudSeed.Value);
 
-            _sim.KonfSestry      = (int)nudSestry.Value;
-            _sim.KonfLekari      = (int)nudLekari.Value;
-            _sim.KonfMiestnostiA = (int)nudMiestnostiA.Value;
-            _sim.KonfMiestnostiB = (int)nudMiestnostiB.Value;
+            _sim.KonfSestry       = (int)nudSestry.Value;
+            _sim.KonfLekari       = (int)nudLekari.Value;
+            _sim.KonfMiestnostiA  = (int)nudMiestnostiA.Value;
+            _sim.KonfMiestnostiB  = (int)nudMiestnostiB.Value;
+            _sim.KonfZahrievanie  = (double)nudZahrievanie.Value * 3600.0;
 
             // Animator runs only when not in max-speed mode (Dispatcher.Invoke per patient is too slow)
             if (!_maxSpeed)
@@ -92,13 +93,17 @@ namespace DIS_Semestralka_S3_Nemocnica
                 _lastRefreshTicks = now;
                 try { Invoke(RefreshUI); } catch { }
             };
-            _sim.ReplicationFinished += _ => BeginInvoke(AktualizujStatus);
+            _sim.ReplicationFinished += _ => BeginInvoke(() =>
+            {
+                AktualizujStatus();
+                if (_maxSpeed) AktualizujStatistikyTab();
+            });
 
             _replikacieForm?.AttachSim(_sim);
             _vysledkyForm?.AttachSim(_sim);
 
             int reps      = (int)nudReplikacie.Value;
-            double duration = (double)nudTrvanie.Value * 3600.0;
+            double duration = ((double)nudTrvanie.Value + (double)nudZahrievanie.Value) * 3600.0;
 
             btnSpustit.Enabled = false;
             btnZastavit.Enabled = true;
@@ -396,29 +401,21 @@ namespace DIS_Semestralka_S3_Nemocnica
         {
             if (_sim == null) return;
             var s = _sim;
+            var o = s.AgentOkolia;
+            var z = s.AgentZdrojov;
 
             static string Cas(double sec) =>
                 sec <= 0 ? "—" : TimeSpan.FromSeconds(sec).ToString(@"mm\:ss");
             static string Pct(double v) => $"{v * 100:F1} %";
 
-            // Read last completed replication's value from the aggregate collector.
-            // This avoids the race where PrepareReplication() resets local collectors
-            // before RefreshUI() runs on the UI thread.
-            static string LastCas(StatisticsCollector c)
-            {
-                var vals = c.GetValues();
-                return vals.Length == 0 ? "—" : Cas(vals[vals.Length - 1]);
-            }
-            static string LastCount(StatisticsCollector c)
-            {
-                var vals = c.GetValues();
-                return vals.Length == 0 ? "—" : $"{vals[vals.Length - 1]:F0}";
-            }
-            static string LastPct(StatisticsCollector c)
-            {
-                var vals = c.GetValues();
-                return vals.Length == 0 ? "—" : Pct(vals[vals.Length - 1]);
-            }
+            // Stĺpec „Replikácia" — živé hodnoty z lokálnych kolektorov agentov.
+            // V spomalenom móde sa aktualizujú priebežne, v rýchlom po každej replikácii.
+            static string LiveCas(StatisticsCollector loc)
+                => loc.ValueCounter > 0 ? Cas(loc.Average) : "—";
+            static string LiveCount(int val)
+                => val > 0 ? $"{val}" : "—";
+            static string LivePct(WeightedStatisticsCollector loc)
+                => loc.TotalWeight > 0 ? Pct(loc.WeightedAverage) : "—";
 
             static string AggStat(StatisticsCollector c)
             {
@@ -426,7 +423,7 @@ namespace DIS_Semestralka_S3_Nemocnica
                 var ci = c.GetConfidenceInterval();
                 string avg = Cas(c.Average);
                 if (ci == null) return $"{avg}  (n<30)";
-                return $"{avg}  ±{Cas(c.Average - ci.Value.Lower)}";
+                return $"{avg}  [{Cas(ci.Value.Lower)}, {Cas(ci.Value.Upper)}]";
             }
             static string AggCount(StatisticsCollector c)
             {
@@ -434,7 +431,7 @@ namespace DIS_Semestralka_S3_Nemocnica
                 var ci = c.GetConfidenceInterval();
                 string avg = $"{c.Average:F1}";
                 if (ci == null) return $"{avg}  (n<30)";
-                return $"{avg}  ±{c.Average - ci.Value.Lower:F1}";
+                return $"{avg}  [{ci.Value.Lower:F1}, {ci.Value.Upper:F1}]";
             }
             static string AggPct(StatisticsCollector c)
             {
@@ -442,7 +439,7 @@ namespace DIS_Semestralka_S3_Nemocnica
                 var ci = c.GetConfidenceInterval();
                 string avg = Pct(c.Average);
                 if (ci == null) return $"{avg}  (n<30)";
-                return $"{avg}  ±{(c.Average - ci.Value.Lower) * 100:F1} %";
+                return $"{avg}  [{Pct(ci.Value.Lower)}, {Pct(ci.Value.Upper)}]";
             }
 
             void Set(int row, string cur, string agg)
@@ -452,36 +449,36 @@ namespace DIS_Semestralka_S3_Nemocnica
             }
 
             // Pacienti (rows 1-3)
-            Set(1, LastCount(s.PocetPacienti), AggCount(s.PocetPacienti));
-            Set(2, LastCount(s.PocetPeso),     AggCount(s.PocetPeso));
-            Set(3, LastCount(s.PocetSanitka),  AggCount(s.PocetSanitka));
+            Set(1, LiveCount(o.LocPocetPacienti), AggCount(s.PocetPacienti));
+            Set(2, LiveCount(o.LocPocetPeso),     AggCount(s.PocetPeso));
+            Set(3, LiveCount(o.LocPocetSanitka),  AggCount(s.PocetSanitka));
 
             // Čas v systéme (rows 5-7)
-            Set(5, LastCas(s.DobaVSysteme),        AggStat(s.DobaVSysteme));
-            Set(6, LastCas(s.DobaVSystemePeso),    AggStat(s.DobaVSystemePeso));
-            Set(7, LastCas(s.DobaVSystemeSanitka), AggStat(s.DobaVSystemeSanitka));
+            Set(5, LiveCas(o.LocDobaVSysteme),        AggStat(s.DobaVSysteme));
+            Set(6, LiveCas(o.LocDobaVSystemePeso),    AggStat(s.DobaVSystemePeso));
+            Set(7, LiveCas(o.LocDobaVSystemeSanitka), AggStat(s.DobaVSystemeSanitka));
 
             // Čakanie na VV (rows 9-11)
-            Set(9,  LastCas(s.DobaVV),        AggStat(s.DobaVV));
-            Set(10, LastCas(s.DobaVVPeso),    AggStat(s.DobaVVPeso));
-            Set(11, LastCas(s.DobaVVSanitka), AggStat(s.DobaVVSanitka));
+            Set(9,  LiveCas(z.LocDobaVV),        AggStat(s.DobaVV));
+            Set(10, LiveCas(z.LocDobaVVPeso),    AggStat(s.DobaVVPeso));
+            Set(11, LiveCas(z.LocDobaVVSanitka), AggStat(s.DobaVVSanitka));
 
             // Čakanie na ošetrenie (rows 13-16)
-            Set(13, LastCas(s.DobaOsetrenie),   AggStat(s.DobaOsetrenie));
-            Set(14, LastCas(s.DobaOsetrenieA),  AggStat(s.DobaOsetrenieA));
-            Set(15, LastCas(s.DobaOsetrenieAB), AggStat(s.DobaOsetrenieAB));
-            Set(16, LastCas(s.DobaOsetrenieB),  AggStat(s.DobaOsetrenieB));
+            Set(13, LiveCas(z.LocDobaOsetrenie),   AggStat(s.DobaOsetrenie));
+            Set(14, LiveCas(z.LocDobaOsetrenieA),  AggStat(s.DobaOsetrenieA));
+            Set(15, LiveCas(z.LocDobaOsetrenieAB), AggStat(s.DobaOsetrenieAB));
+            Set(16, LiveCas(z.LocDobaOsetrenieB),  AggStat(s.DobaOsetrenieB));
 
             // Čas do začiatku ošetrenia (rows 18-20)
-            Set(18, LastCas(s.DobaPrichodDoOsetrenia),         AggStat(s.DobaPrichodDoOsetrenia));
-            Set(19, LastCas(s.DobaPrichodDoOsetreniaPeso),     AggStat(s.DobaPrichodDoOsetreniaPeso));
-            Set(20, LastCas(s.DobaPrichodDoOsetreniaSanitka),  AggStat(s.DobaPrichodDoOsetreniaSanitka));
+            Set(18, LiveCas(z.LocDobaPrichodDoOsetrenia),         AggStat(s.DobaPrichodDoOsetrenia));
+            Set(19, LiveCas(z.LocDobaPrichodDoOsetreniaPeso),     AggStat(s.DobaPrichodDoOsetreniaPeso));
+            Set(20, LiveCas(z.LocDobaPrichodDoOsetreniaSanitka),  AggStat(s.DobaPrichodDoOsetreniaSanitka));
 
             // Vyťaženie zdrojov (rows 22-25)
-            Set(22, LastPct(s.VytazenostLekari),       AggPct(s.VytazenostLekari));
-            Set(23, LastPct(s.VytazenostSestry),       AggPct(s.VytazenostSestry));
-            Set(24, LastPct(s.VytazenostMiestnostiA),  AggPct(s.VytazenostMiestnostiA));
-            Set(25, LastPct(s.VytazenostMiestnostiB),  AggPct(s.VytazenostMiestnostiB));
+            Set(22, LivePct(z.LocVytazenostLekari),      AggPct(s.VytazenostLekari));
+            Set(23, LivePct(z.LocVytazenostSestry),      AggPct(s.VytazenostSestry));
+            Set(24, LivePct(z.LocVytazenostMiestnostiA), AggPct(s.VytazenostMiestnostiA));
+            Set(25, LivePct(z.LocVytazenostMiestnostiB), AggPct(s.VytazenostMiestnostiB));
         }
 
         private void BtnReplikacie_Click(object sender, EventArgs e)

@@ -1,6 +1,7 @@
 using OSPABA;
 using Simulation;
 using Agents.AgentOkolia.ContinualAssistants;
+using DIS_Semestralka_S3_Nemocnica.Collectors;
 
 namespace Agents.AgentOkolia
 {
@@ -15,8 +16,25 @@ namespace Agents.AgentOkolia
 
 		public int PocetPacientov { get; set; }
 
+		// ── Lokálne štatistiky (reset na začiatku každej replikácie) ──
+		public volatile int LocPocetPacienti;
+		public volatile int LocPocetPeso;
+		public volatile int LocPocetSanitka;
+		public StatisticsCollector LocDobaVSysteme        { get; private set; } = new();
+		public StatisticsCollector LocDobaVSystemePeso    { get; private set; } = new();
+		public StatisticsCollector LocDobaVSystemeSanitka { get; private set; } = new();
+
+		public void ResetLocalStats()
+		{
+			LocPocetPacienti = 0; LocPocetPeso = 0; LocPocetSanitka = 0;
+			LocDobaVSysteme        = new StatisticsCollector();
+			LocDobaVSystemePeso    = new StatisticsCollector();
+			LocDobaVSystemeSanitka = new StatisticsCollector();
+		}
+
 		override public void PrepareReplication()
 		{
+			ResetLocalStats();
 			base.PrepareReplication();
 			PocetPacientov = 0;
 		}

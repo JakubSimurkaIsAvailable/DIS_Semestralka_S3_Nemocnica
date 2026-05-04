@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using ScottPlot.WinForms;
 using Simulation;
+using DIS_Semestralka_S3_Nemocnica.Collectors;
 
 namespace DIS_Semestralka_S3_Nemocnica
 {
@@ -42,45 +43,45 @@ namespace DIS_Semestralka_S3_Nemocnica
             }
 
             Add("Čas – celkovo",    "Čas v systéme – celkovo",        "minúty",
-                s => s.LocDobaVSysteme.ValueCounter        > 0 ? s.LocDobaVSysteme.Average        : double.NaN, v => v / 60.0);
+                s => s.AgentOkolia.LocDobaVSysteme.ValueCounter        > 0 ? s.AgentOkolia.LocDobaVSysteme.Average        : double.NaN, v => v / 60.0);
             Add("Čas – pešo",       "Čas v systéme – pešo",           "minúty",
-                s => s.LocDobaVSystemePeso.ValueCounter    > 0 ? s.LocDobaVSystemePeso.Average    : double.NaN, v => v / 60.0);
+                s => s.AgentOkolia.LocDobaVSystemePeso.ValueCounter    > 0 ? s.AgentOkolia.LocDobaVSystemePeso.Average    : double.NaN, v => v / 60.0);
             Add("Čas – sanitkou",   "Čas v systéme – sanitkou",       "minúty",
-                s => s.LocDobaVSystemeSanitka.ValueCounter > 0 ? s.LocDobaVSystemeSanitka.Average : double.NaN, v => v / 60.0);
+                s => s.AgentOkolia.LocDobaVSystemeSanitka.ValueCounter > 0 ? s.AgentOkolia.LocDobaVSystemeSanitka.Average : double.NaN, v => v / 60.0);
             Add("VV – celkovo",     "Čakanie na VV – celkovo",        "minúty",
-                s => s.LocDobaVV.ValueCounter              > 0 ? s.LocDobaVV.Average              : double.NaN, v => v / 60.0);
+                s => s.AgentZdrojov.LocDobaVV.ValueCounter        > 0 ? s.AgentZdrojov.LocDobaVV.Average        : double.NaN, v => v / 60.0);
             Add("VV – pešo",        "Čakanie na VV – pešo",           "minúty",
-                s => s.LocDobaVVPeso.ValueCounter          > 0 ? s.LocDobaVVPeso.Average          : double.NaN, v => v / 60.0);
+                s => s.AgentZdrojov.LocDobaVVPeso.ValueCounter    > 0 ? s.AgentZdrojov.LocDobaVVPeso.Average    : double.NaN, v => v / 60.0);
             Add("VV – sanitkou",    "Čakanie na VV – sanitkou",       "minúty",
-                s => s.LocDobaVVSanitka.ValueCounter       > 0 ? s.LocDobaVVSanitka.Average       : double.NaN, v => v / 60.0);
+                s => s.AgentZdrojov.LocDobaVVSanitka.ValueCounter > 0 ? s.AgentZdrojov.LocDobaVVSanitka.Average : double.NaN, v => v / 60.0);
             Add("Ošetr. – celkovo", "Čakanie na ošetrenie – celkovo", "minúty",
-                s => s.LocDobaOsetrenie.ValueCounter       > 0 ? s.LocDobaOsetrenie.Average       : double.NaN, v => v / 60.0);
+                s => s.AgentZdrojov.LocDobaOsetrenie.ValueCounter    > 0 ? s.AgentZdrojov.LocDobaOsetrenie.Average    : double.NaN, v => v / 60.0);
             Add("Ošetr. – Rad A",   "Čakanie na ošetrenie – Rad A",   "minúty",
-                s => s.LocDobaOsetrenieA.ValueCounter      > 0 ? s.LocDobaOsetrenieA.Average      : double.NaN, v => v / 60.0);
+                s => s.AgentZdrojov.LocDobaOsetrenieA.ValueCounter   > 0 ? s.AgentZdrojov.LocDobaOsetrenieA.Average   : double.NaN, v => v / 60.0);
             Add("Ošetr. – Rad A/B", "Čakanie na ošetrenie – Rad A/B", "minúty",
-                s => s.LocDobaOsetrenieAB.ValueCounter     > 0 ? s.LocDobaOsetrenieAB.Average     : double.NaN, v => v / 60.0);
+                s => s.AgentZdrojov.LocDobaOsetrenieAB.ValueCounter  > 0 ? s.AgentZdrojov.LocDobaOsetrenieAB.Average  : double.NaN, v => v / 60.0);
             Add("Ošetr. – Rad B",   "Čakanie na ošetrenie – Rad B",   "minúty",
-                s => s.LocDobaOsetrenieB.ValueCounter      > 0 ? s.LocDobaOsetrenieB.Average      : double.NaN, v => v / 60.0);
+                s => s.AgentZdrojov.LocDobaOsetrenieB.ValueCounter   > 0 ? s.AgentZdrojov.LocDobaOsetrenieB.Average   : double.NaN, v => v / 60.0);
             Add("Príchod → ošetr.", "Čas od príchodu do začiatku ošetrenia – celkovo", "minúty",
-                s => s.LocDobaPrichodDoOsetrenia.ValueCounter       > 0 ? s.LocDobaPrichodDoOsetrenia.Average       : double.NaN, v => v / 60.0);
+                s => s.AgentZdrojov.LocDobaPrichodDoOsetrenia.ValueCounter        > 0 ? s.AgentZdrojov.LocDobaPrichodDoOsetrenia.Average        : double.NaN, v => v / 60.0);
             Add("Príchod → ošetr. (pešo)", "Čas od príchodu do začiatku ošetrenia – pešo", "minúty",
-                s => s.LocDobaPrichodDoOsetreniaPeso.ValueCounter    > 0 ? s.LocDobaPrichodDoOsetreniaPeso.Average    : double.NaN, v => v / 60.0);
+                s => s.AgentZdrojov.LocDobaPrichodDoOsetreniaPeso.ValueCounter    > 0 ? s.AgentZdrojov.LocDobaPrichodDoOsetreniaPeso.Average    : double.NaN, v => v / 60.0);
             Add("Príchod → ošetr. (sanitka)", "Čas od príchodu do začiatku ošetrenia – sanitkou", "minúty",
-                s => s.LocDobaPrichodDoOsetreniaSanitka.ValueCounter > 0 ? s.LocDobaPrichodDoOsetreniaSanitka.Average : double.NaN, v => v / 60.0);
+                s => s.AgentZdrojov.LocDobaPrichodDoOsetreniaSanitka.ValueCounter > 0 ? s.AgentZdrojov.LocDobaPrichodDoOsetreniaSanitka.Average : double.NaN, v => v / 60.0);
             Add("Lekári",           "Vyťaženie lekárov",              "percent (%)",
-                s => s.LocVytazenostLekari.WeightedAverage,      v => v * 100.0);
+                s => s.AgentZdrojov.LocVytazenostLekari.TotalWeight      > 0 ? s.AgentZdrojov.LocVytazenostLekari.WeightedAverage      : double.NaN, v => v * 100.0);
             Add("Sestry",           "Vyťaženie sestier",              "percent (%)",
-                s => s.LocVytazenostSestry.WeightedAverage,      v => v * 100.0);
+                s => s.AgentZdrojov.LocVytazenostSestry.TotalWeight      > 0 ? s.AgentZdrojov.LocVytazenostSestry.WeightedAverage      : double.NaN, v => v * 100.0);
             Add("Miestnosti A",     "Vyťaženie miestností A",         "percent (%)",
-                s => s.LocVytazenostMiestnostiA.WeightedAverage, v => v * 100.0);
+                s => s.AgentZdrojov.LocVytazenostMiestnostiA.TotalWeight > 0 ? s.AgentZdrojov.LocVytazenostMiestnostiA.WeightedAverage : double.NaN, v => v * 100.0);
             Add("Miestnosti B",     "Vyťaženie miestností B",         "percent (%)",
-                s => s.LocVytazenostMiestnostiB.WeightedAverage, v => v * 100.0);
+                s => s.AgentZdrojov.LocVytazenostMiestnostiB.TotalWeight > 0 ? s.AgentZdrojov.LocVytazenostMiestnostiB.WeightedAverage : double.NaN, v => v * 100.0);
             Add("Počty – celkovo",  "Počet pacientov – celkovo",      "počet",
-                s => s.LocPocetPacienti,  v => v);
+                s => (double)s.AgentOkolia.LocPocetPacienti, v => v);
             Add("Počty – pešo",     "Počet pacientov – pešo",         "počet",
-                s => s.LocPocetPeso,      v => v);
+                s => (double)s.AgentOkolia.LocPocetPeso,     v => v);
             Add("Počty – sanitkou", "Počet pacientov – sanitkou",     "počet",
-                s => s.LocPocetSanitka,   v => v);
+                s => (double)s.AgentOkolia.LocPocetSanitka,  v => v);
 
             _onGuiTick = s =>
             {
@@ -164,7 +165,7 @@ namespace DIS_Semestralka_S3_Nemocnica
 
             var sc = plt.Add.Scatter(xs, transformed);
             sc.Color      = ScottPlot.Color.FromHex("#2196F3");
-            sc.MarkerSize = 4;
+            sc.MarkerSize = 5;
             sc.LineWidth  = 1.5f;
             sc.LegendText = "bežiaci priemer";
 

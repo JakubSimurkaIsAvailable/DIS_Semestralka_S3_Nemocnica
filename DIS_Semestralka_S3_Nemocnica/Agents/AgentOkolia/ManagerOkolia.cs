@@ -71,17 +71,17 @@ namespace Agents.AgentOkolia
 			if (sim.Pacienti.TryRemove(msg.PacientId, out var info))
 			{
 				double dobaVSysteme = MySim.CurrentTime - info.CasPrichodu;
-				sim.LocDobaVSysteme.AddValue(dobaVSysteme);
-				sim.LocPocetPacienti++;
+				MyAgent.LocDobaVSysteme.AddValue(dobaVSysteme);
+				MyAgent.LocPocetPacienti++;
 				if (info.PrisielSanitkou)
 				{
-					sim.LocDobaVSystemeSanitka.AddValue(dobaVSysteme);
-					sim.LocPocetSanitka++;
+					MyAgent.LocDobaVSystemeSanitka.AddValue(dobaVSysteme);
+					MyAgent.LocPocetSanitka++;
 				}
 				else
 				{
-					sim.LocDobaVSystemePeso.AddValue(dobaVSysteme);
-					sim.LocPocetPeso++;
+					MyAgent.LocDobaVSystemePeso.AddValue(dobaVSysteme);
+					MyAgent.LocPocetPeso++;
 				}
 			}
 			sim.PocetVybavenych++;

@@ -24,6 +24,11 @@ namespace Agents.AgentOkolia.ContinualAssistants
 		//meta! sender="AgentOkolia", id="55", type="Start"
 		public void ProcessStart(MessageForm message)
 		{
+			var sim = (MySimulation)MySim;
+
+			if (!sim.WarmupSkoncilo && sim.KonfZahrievanie > 0 && MySim.CurrentTime >= sim.KonfZahrievanie)
+				sim.ResetLocalStatsAtWarmupEnd();
+
 			if (MySim.CurrentTime > 0)
 			{
 				var notif = (MyMessage)message.CreateCopy();

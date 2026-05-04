@@ -16,6 +16,8 @@ namespace DIS_Semestralka_S3_Nemocnica
             pnlTop = new System.Windows.Forms.FlowLayoutPanel();
             lblTrvanieLabel = new System.Windows.Forms.Label();
             nudTrvanie = new System.Windows.Forms.NumericUpDown();
+            lblZahrivanieLabel = new System.Windows.Forms.Label();
+            nudZahrievanie = new System.Windows.Forms.NumericUpDown();
             lblReplikacieLabel = new System.Windows.Forms.Label();
             nudReplikacie = new System.Windows.Forms.NumericUpDown();
             lblSeedLabel = new System.Windows.Forms.Label();
@@ -88,6 +90,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             pnlAnimator = new System.Windows.Forms.Panel();
 
             ((System.ComponentModel.ISupportInitialize)nudTrvanie).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)nudZahrievanie).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudReplikacie).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudSeed).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudSestry).BeginInit();
@@ -120,6 +123,8 @@ namespace DIS_Semestralka_S3_Nemocnica
             // pnlTop
             pnlTop.Controls.Add(lblTrvanieLabel);
             pnlTop.Controls.Add(nudTrvanie);
+            pnlTop.Controls.Add(lblZahrivanieLabel);
+            pnlTop.Controls.Add(nudZahrievanie);
             pnlTop.Controls.Add(lblReplikacieLabel);
             pnlTop.Controls.Add(nudReplikacie);
             pnlTop.Controls.Add(lblSeedLabel);
@@ -149,6 +154,18 @@ namespace DIS_Semestralka_S3_Nemocnica
             nudTrvanie.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             nudTrvanie.Value = new decimal(new int[] { 672, 0, 0, 0 });
             nudTrvanie.Width = 55;
+
+            // lblZahrivanieLabel
+            lblZahrivanieLabel.AutoSize = true;
+            lblZahrivanieLabel.Margin = new System.Windows.Forms.Padding(0, 7, 0, 0);
+            lblZahrivanieLabel.Text = "Zahrievanie (hod):";
+
+            // nudZahrievanie
+            nudZahrievanie.Margin = new System.Windows.Forms.Padding(2, 4, 10, 0);
+            nudZahrievanie.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
+            nudZahrievanie.Minimum = new decimal(new int[] { 0, 0, 0, 0 });
+            nudZahrievanie.Value = new decimal(new int[] { 0, 0, 0, 0 });
+            nudZahrievanie.Width = 55;
 
             // lblReplikacieLabel
             lblReplikacieLabel.AutoSize = true;
@@ -600,6 +617,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             Text = "Simulácia nemocnice";
 
             ((System.ComponentModel.ISupportInitialize)nudTrvanie).EndInit();
+            ((System.ComponentModel.ISupportInitialize)nudZahrievanie).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudReplikacie).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudSeed).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudSestry).EndInit();
@@ -638,6 +656,8 @@ namespace DIS_Semestralka_S3_Nemocnica
         private System.Windows.Forms.FlowLayoutPanel pnlTop;
         private System.Windows.Forms.Label lblTrvanieLabel;
         private System.Windows.Forms.NumericUpDown nudTrvanie;
+        private System.Windows.Forms.Label lblZahrivanieLabel;
+        private System.Windows.Forms.NumericUpDown nudZahrievanie;
         private System.Windows.Forms.Label lblReplikacieLabel;
         private System.Windows.Forms.NumericUpDown nudReplikacie;
         private System.Windows.Forms.Label lblSeedLabel;

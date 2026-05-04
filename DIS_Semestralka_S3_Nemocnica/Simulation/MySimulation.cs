@@ -28,29 +28,8 @@ namespace Simulation
         public int KonfLekari { get; set; } = 2;
         public int KonfMiestnostiA { get; set; } = 5;
         public int KonfMiestnostiB { get; set; } = 7;
-
-        // ── Local stats (reset each replication) ──────────────────────
-        public volatile int LocPocetPacienti;
-        public volatile int LocPocetPeso;
-        public volatile int LocPocetSanitka;
-
-        public StatisticsCollector LocDobaVV            { get; private set; } = new();
-        public StatisticsCollector LocDobaOsetrenie      { get; private set; } = new();
-        public StatisticsCollector LocDobaVSysteme       { get; private set; } = new();
-        public StatisticsCollector LocDobaVSystemePeso   { get; private set; } = new();
-        public StatisticsCollector LocDobaVSystemeSanitka{ get; private set; } = new();
-        public StatisticsCollector LocDobaVVPeso         { get; private set; } = new();
-        public StatisticsCollector LocDobaVVSanitka      { get; private set; } = new();
-        public StatisticsCollector LocDobaOsetrenieA     { get; private set; } = new();
-        public StatisticsCollector LocDobaOsetrenieAB    { get; private set; } = new();
-        public StatisticsCollector LocDobaOsetrenieB     { get; private set; } = new();
-        public StatisticsCollector LocDobaPrichodDoOsetrenia       { get; private set; } = new();
-        public StatisticsCollector LocDobaPrichodDoOsetreniaPeso    { get; private set; } = new();
-        public StatisticsCollector LocDobaPrichodDoOsetreniaSanitka { get; private set; } = new();
-        public WeightedStatisticsCollector LocVytazenostLekari       { get; private set; } = new();
-        public WeightedStatisticsCollector LocVytazenostSestry       { get; private set; } = new();
-        public WeightedStatisticsCollector LocVytazenostMiestnostiA  { get; private set; } = new();
-        public WeightedStatisticsCollector LocVytazenostMiestnostiB  { get; private set; } = new();
+        public double KonfZahrievanie { get; set; } = 0;
+        public bool WarmupSkoncilo { get; set; } = false;
 
         // ── Aggregate stats (across replications) ─────────────────────
         public StatisticsCollector PocetPacienti  { get; } = new(true);
@@ -142,35 +121,36 @@ namespace Simulation
                 var z = AgentZdrojov;
                 double t = CurrentTime;
                 if (z.TotalLekari > 0)
-                    LocVytazenostLekari.AddWeightedValue((double)(z.TotalLekari - z.VolneLekari) / z.TotalLekari, t);
+                    z.LocVytazenostLekari.AddWeightedValue((double)(z.TotalLekari - z.VolneLekari) / z.TotalLekari, t);
                 if (z.TotalSestry > 0)
-                    LocVytazenostSestry.AddWeightedValue((double)(z.TotalSestry - z.VolneSestry) / z.TotalSestry, t);
+                    z.LocVytazenostSestry.AddWeightedValue((double)(z.TotalSestry - z.VolneSestry) / z.TotalSestry, t);
                 if (z.TotalMiestnostiA > 0)
-                    LocVytazenostMiestnostiA.AddWeightedValue((double)(z.TotalMiestnostiA - z.VolneMiestnostiA) / z.TotalMiestnostiA, t);
+                    z.LocVytazenostMiestnostiA.AddWeightedValue((double)(z.TotalMiestnostiA - z.VolneMiestnostiA) / z.TotalMiestnostiA, t);
                 if (z.TotalMiestnostiB > 0)
-                    LocVytazenostMiestnostiB.AddWeightedValue((double)(z.TotalMiestnostiB - z.VolneMiestnostiB) / z.TotalMiestnostiB, t);
+                    z.LocVytazenostMiestnostiB.AddWeightedValue((double)(z.TotalMiestnostiB - z.VolneMiestnostiB) / z.TotalMiestnostiB, t);
 
-                // Collect per-replication averages into aggregate collectors
-                PocetPacienti.AddValue(LocPocetPacienti);
-                PocetPeso.AddValue(LocPocetPeso);
-                PocetSanitka.AddValue(LocPocetSanitka);
-                if (LocDobaVV.ValueCounter > 0)             DobaVV.AddValue(LocDobaVV.Average);
-                if (LocDobaOsetrenie.ValueCounter > 0)      DobaOsetrenie.AddValue(LocDobaOsetrenie.Average);
-                if (LocDobaVSysteme.ValueCounter > 0)       DobaVSysteme.AddValue(LocDobaVSysteme.Average);
-                if (LocDobaVSystemePeso.ValueCounter > 0)   DobaVSystemePeso.AddValue(LocDobaVSystemePeso.Average);
-                if (LocDobaVSystemeSanitka.ValueCounter > 0)DobaVSystemeSanitka.AddValue(LocDobaVSystemeSanitka.Average);
-                if (LocDobaVVPeso.ValueCounter > 0)         DobaVVPeso.AddValue(LocDobaVVPeso.Average);
-                if (LocDobaVVSanitka.ValueCounter > 0)      DobaVVSanitka.AddValue(LocDobaVVSanitka.Average);
-                if (LocDobaOsetrenieA.ValueCounter > 0)     DobaOsetrenieA.AddValue(LocDobaOsetrenieA.Average);
-                if (LocDobaOsetrenieAB.ValueCounter > 0)    DobaOsetrenieAB.AddValue(LocDobaOsetrenieAB.Average);
-                if (LocDobaOsetrenieB.ValueCounter > 0)     DobaOsetrenieB.AddValue(LocDobaOsetrenieB.Average);
-                if (LocDobaPrichodDoOsetrenia.ValueCounter > 0)       DobaPrichodDoOsetrenia.AddValue(LocDobaPrichodDoOsetrenia.Average);
-                if (LocDobaPrichodDoOsetreniaPeso.ValueCounter > 0)    DobaPrichodDoOsetreniaPeso.AddValue(LocDobaPrichodDoOsetreniaPeso.Average);
-                if (LocDobaPrichodDoOsetreniaSanitka.ValueCounter > 0) DobaPrichodDoOsetreniaSanitka.AddValue(LocDobaPrichodDoOsetreniaSanitka.Average);
-                VytazenostLekari.AddValue(LocVytazenostLekari.WeightedAverage);
-                VytazenostSestry.AddValue(LocVytazenostSestry.WeightedAverage);
-                VytazenostMiestnostiA.AddValue(LocVytazenostMiestnostiA.WeightedAverage);
-                VytazenostMiestnostiB.AddValue(LocVytazenostMiestnostiB.WeightedAverage);
+                // Zbieranie priemerov replikácie do agregovaných kolektorov
+                var o = AgentOkolia;
+                PocetPacienti.AddValue(o.LocPocetPacienti);
+                PocetPeso.AddValue(o.LocPocetPeso);
+                PocetSanitka.AddValue(o.LocPocetSanitka);
+                if (o.LocDobaVSysteme.ValueCounter > 0)        DobaVSysteme.AddValue(o.LocDobaVSysteme.Average);
+                if (o.LocDobaVSystemePeso.ValueCounter > 0)    DobaVSystemePeso.AddValue(o.LocDobaVSystemePeso.Average);
+                if (o.LocDobaVSystemeSanitka.ValueCounter > 0) DobaVSystemeSanitka.AddValue(o.LocDobaVSystemeSanitka.Average);
+                if (z.LocDobaVV.ValueCounter > 0)              DobaVV.AddValue(z.LocDobaVV.Average);
+                if (z.LocDobaVVPeso.ValueCounter > 0)          DobaVVPeso.AddValue(z.LocDobaVVPeso.Average);
+                if (z.LocDobaVVSanitka.ValueCounter > 0)       DobaVVSanitka.AddValue(z.LocDobaVVSanitka.Average);
+                if (z.LocDobaOsetrenie.ValueCounter > 0)       DobaOsetrenie.AddValue(z.LocDobaOsetrenie.Average);
+                if (z.LocDobaOsetrenieA.ValueCounter > 0)      DobaOsetrenieA.AddValue(z.LocDobaOsetrenieA.Average);
+                if (z.LocDobaOsetrenieAB.ValueCounter > 0)     DobaOsetrenieAB.AddValue(z.LocDobaOsetrenieAB.Average);
+                if (z.LocDobaOsetrenieB.ValueCounter > 0)      DobaOsetrenieB.AddValue(z.LocDobaOsetrenieB.Average);
+                if (z.LocDobaPrichodDoOsetrenia.ValueCounter > 0)        DobaPrichodDoOsetrenia.AddValue(z.LocDobaPrichodDoOsetrenia.Average);
+                if (z.LocDobaPrichodDoOsetreniaPeso.ValueCounter > 0)    DobaPrichodDoOsetreniaPeso.AddValue(z.LocDobaPrichodDoOsetreniaPeso.Average);
+                if (z.LocDobaPrichodDoOsetreniaSanitka.ValueCounter > 0) DobaPrichodDoOsetreniaSanitka.AddValue(z.LocDobaPrichodDoOsetreniaSanitka.Average);
+                VytazenostLekari.AddValue(z.LocVytazenostLekari.WeightedAverage);
+                VytazenostSestry.AddValue(z.LocVytazenostSestry.WeightedAverage);
+                VytazenostMiestnostiA.AddValue(z.LocVytazenostMiestnostiA.WeightedAverage);
+                VytazenostMiestnostiB.AddValue(z.LocVytazenostMiestnostiB.WeightedAverage);
 
                 ReplicationFinished?.Invoke(this);
             });
@@ -178,8 +158,6 @@ namespace Simulation
 
         override public void PrepareReplication()
         {
-            // Reset local stats BEFORE base so agents can use fresh collectors in their PrepareReplication
-            ResetLocalStats();
             base.PrepareReplication();
             SetSimSpeed(GuiInterval, GuiDurationMs > 0 ? GuiDurationMs / 1000.0 : 0.001);
             if (Zastavit)
@@ -189,32 +167,18 @@ namespace Simulation
             }
             Pacienti.Clear();
             PocetVybavenych = 0;
+            WarmupSkoncilo = false;
             AnimPriprav();
             // Re-register OnRefreshUI here in case base.PrepareReplication() resets it
             OnRefreshUI(_ => GuiTick?.Invoke(this));
             ReplicationDidStart?.Invoke(this);
         }
 
-        private void ResetLocalStats()
+        public void ResetLocalStatsAtWarmupEnd()
         {
-            LocPocetPacienti = 0; LocPocetPeso = 0; LocPocetSanitka = 0;
-            LocDobaVV             = new StatisticsCollector();
-            LocDobaOsetrenie      = new StatisticsCollector();
-            LocDobaVSysteme       = new StatisticsCollector();
-            LocDobaVSystemePeso   = new StatisticsCollector();
-            LocDobaVSystemeSanitka= new StatisticsCollector();
-            LocDobaVVPeso         = new StatisticsCollector();
-            LocDobaVVSanitka      = new StatisticsCollector();
-            LocDobaOsetrenieA     = new StatisticsCollector();
-            LocDobaOsetrenieAB    = new StatisticsCollector();
-            LocDobaOsetrenieB     = new StatisticsCollector();
-            LocDobaPrichodDoOsetrenia       = new StatisticsCollector();
-            LocDobaPrichodDoOsetreniaPeso    = new StatisticsCollector();
-            LocDobaPrichodDoOsetreniaSanitka = new StatisticsCollector();
-            LocVytazenostLekari       = new WeightedStatisticsCollector();
-            LocVytazenostSestry       = new WeightedStatisticsCollector();
-            LocVytazenostMiestnostiA  = new WeightedStatisticsCollector();
-            LocVytazenostMiestnostiB  = new WeightedStatisticsCollector();
+            AgentOkolia.ResetLocalStats();
+            AgentZdrojov.ResetLocalStatsAtWarmupEnd(CurrentTime);
+            WarmupSkoncilo = true;
         }
 
         // ── Animation helpers ──────────────────────────────────────────
