@@ -1,5 +1,6 @@
 using OSPABA;
 using Simulation;
+using Simulation.Resources;
 using Agents.AgentZdrojov.InstantAssistants;
 using DIS_Semestralka_S3_Nemocnica.Collectors;
 
@@ -8,15 +9,27 @@ namespace Agents.AgentZdrojov
 	//meta! id="12"
 	public class AgentZdrojov : OSPABA.Agent
 	{
-		public int TotalSestry { get; set; } = 3;
-		public int TotalLekari { get; set; } = 2;
-		public int TotalMiestnostiA { get; set; } = 5;
-		public int TotalMiestnostiB { get; set; } = 7;
+		// ── Master pools (identita každého zdroja) ──
+		public List<Sestra>    VsestkySestry    { get; } = new();
+		public List<Lekar>     VsetciLekari     { get; } = new();
+		public List<MiestnostA> VsetkyMiestnostiA { get; } = new();
+		public List<MiestnostB> VsetkyMiestnostiB { get; } = new();
 
-		public int VolneSestry { get; set; }
-		public int VolneLekari { get; set; }
-		public int VolneMiestnostiA { get; set; }
-		public int VolneMiestnostiB { get; set; }
+		// ── Voľné fronty ──
+		public Queue<Sestra>    SestryVolne      { get; } = new();
+		public Queue<Lekar>     LekariVolne      { get; } = new();
+		public Queue<MiestnostA> MiestnostiAVolne { get; } = new();
+		public Queue<MiestnostB> MiestnostiBVolne { get; } = new();
+
+		// ── Computed ints pre spätnú kompatibilitu (Form1, štatistiky) ──
+		public int TotalSestry     => VsestkySestry.Count;
+		public int TotalLekari     => VsetciLekari.Count;
+		public int TotalMiestnostiA => VsetkyMiestnostiA.Count;
+		public int TotalMiestnostiB => VsetkyMiestnostiB.Count;
+		public int VolneSestry     => SestryVolne.Count;
+		public int VolneLekari     => LekariVolne.Count;
+		public int VolneMiestnostiA => MiestnostiAVolne.Count;
+		public int VolneMiestnostiB => MiestnostiBVolne.Count;
 
 		public PriorityQueue<MyMessage, (int, int)> RadVV { get; } = new();
 		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadA  { get; } = new();
@@ -83,16 +96,29 @@ namespace Agents.AgentZdrojov
 		override public void PrepareReplication()
 		{
 			var sim = (MySimulation)MySim;
-			TotalSestry = sim.KonfSestry;
-			TotalLekari = sim.KonfLekari;
-			TotalMiestnostiA = sim.KonfMiestnostiA;
-			TotalMiestnostiB = sim.KonfMiestnostiB;
-			VolneSestry = TotalSestry;
-			VolneLekari = TotalLekari;
-			VolneMiestnostiA = TotalMiestnostiA;
-			VolneMiestnostiB = TotalMiestnostiB;
+
+			VsestkySestry.Clear();
+			for (int i = 0; i < sim.KonfSestry; i++) VsestkySestry.Add(new Sestra(i));
+			SestryVolne.Clear();
+			foreach (var s in VsestkySestry) SestryVolne.Enqueue(s);
+
+			VsetciLekari.Clear();
+			for (int i = 0; i < sim.KonfLekari; i++) VsetciLekari.Add(new Lekar(i));
+			LekariVolne.Clear();
+			foreach (var l in VsetciLekari) LekariVolne.Enqueue(l);
+
+			VsetkyMiestnostiA.Clear();
+			for (int i = 0; i < sim.KonfMiestnostiA; i++) VsetkyMiestnostiA.Add(new MiestnostA(i));
+			MiestnostiAVolne.Clear();
+			foreach (var m in VsetkyMiestnostiA) MiestnostiAVolne.Enqueue(m);
+
+			VsetkyMiestnostiB.Clear();
+			for (int i = 0; i < sim.KonfMiestnostiB; i++) VsetkyMiestnostiB.Add(new MiestnostB(i));
+			MiestnostiBVolne.Clear();
+			foreach (var m in VsetkyMiestnostiB) MiestnostiBVolne.Enqueue(m);
+
 			ResetLocalStats();
-			base.PrepareReplication(); // ManagerZdrojov.ZaznamVytazenosti() zapíše využitie=0 pri t=0 ✓
+			base.PrepareReplication();
 			RadVV.Clear();
 			RadA.Clear();
 			RadAB.Clear();

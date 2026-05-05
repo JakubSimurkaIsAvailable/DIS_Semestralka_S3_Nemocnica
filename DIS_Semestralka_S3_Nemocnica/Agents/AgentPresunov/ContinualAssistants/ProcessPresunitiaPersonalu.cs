@@ -1,7 +1,10 @@
-using DIS_Semestralka_S3_Nemocnica.Generators;
-using OSPABA;
 using Agents.AgentPresunov;
+using DIS_Semestralka_S3_Nemocnica.Generators;
+using DIS_Semestralka_S3_Nemocnica.Generators.Components;
+using OSPABA;
+using ScottPlot.Colormaps;
 using Simulation;
+using Simulation.Resources;
 
 namespace Agents.AgentPresunov.ContinualAssistants
 {
@@ -11,11 +14,13 @@ namespace Agents.AgentPresunov.ContinualAssistants
 
 		// TODO: doplnit spravne rozdelenie pre cas presunu personalu
 		private TrojuholnikovyGenerator _presunPersonalu;
-		public ProcessPresunitiaPersonalu(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
+		private RozdelenieSpojite _prichodSanitka;
+        public ProcessPresunitiaPersonalu(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
 			_presunPersonalu = new TrojuholnikovyGenerator(((MySimulation)mySim).SeedRandom, 15, 20, 45);
-		}
+            _prichodSanitka = new RozdelenieSpojite(((MySimulation)mySim).SeedRandom, 90, 200);
+        }
 
 		override public void PrepareReplication()
 		{
@@ -30,20 +35,32 @@ namespace Agents.AgentPresunov.ContinualAssistants
 			double cas;
 			if (msg.JePresunNaOsetrenie)
 			{
-				double tSestra  = sim.SestraJeUzVMiestnosti(msg.PacientId)  ? 0 : _presunPersonalu.Generate();
-				double tLekar   = sim.LekarJeUzVMiestnosti(msg.PacientId)   ? 0 : _presunPersonalu.Generate();
-				double tPacient = sim.PacientJeUzVMiestnosti(msg.PacientId) ? 0 : _presunPersonalu.Generate();
+				double tSestra  = CasPresunutia(msg.PriradenaSestrа!, msg.PridelenaMiestnost!, sim);
+				double tLekar   = CasPresunutia(msg.PriradenyLekar!,  msg.PridelenaMiestnost!, sim);
+				double tPacient = sim.PacientJeUzVMiestnosti(msg.PacientId, msg.PridelenaMiestnost!) ? 0 : _presunPersonalu.Generate();
 				cas = Math.Max(Math.Max(tSestra, tLekar), tPacient);
 				sim.AnimStaffPohybDoMiestnosti(msg.PacientId, tSestra, tLekar);
 				sim.AnimPacientPohybDoOsetrenia(msg.PacientId, tPacient);
 			}
 			else
 			{
-				cas = sim.SestraJeUzVMiestnosti(msg.PacientId) ? 0 : _presunPersonalu.Generate();
+				cas = CasPresunutia(msg.PriradenaSestrа!, msg.PridelenaMiestnost!, sim);
 				sim.AnimSestryPohybDoMiestnosti(msg.PacientId, cas);
 			}
 			message.Code = Mc.PresunutiePersonaluSkoncilo;
 			Hold(cas, message);
+		}
+
+		private double CasPresunutia(Sestra sestra, Miestnost miestnost, MySimulation sim)
+		{
+			if (sim.SestraJeUzVMiestnosti(sestra, miestnost)) return 0;
+			return sim.SestraJeVAmbulancii(sestra) ? _presunPersonalu.Generate() : _prichodSanitka.Generate();
+		}
+
+		private double CasPresunutia(Lekar lekar, Miestnost miestnost, MySimulation sim)
+		{
+			if (sim.LekarJeUzVMiestnosti(lekar, miestnost)) return 0;
+			return sim.LekarJeVAmbulancii(lekar) ? _presunPersonalu.Generate() : _prichodSanitka.Generate();
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"

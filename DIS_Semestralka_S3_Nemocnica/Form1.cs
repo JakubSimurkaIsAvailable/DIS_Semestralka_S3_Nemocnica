@@ -405,7 +405,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             var z = s.AgentZdrojov;
 
             static string Cas(double sec) =>
-                sec <= 0 ? "—" : TimeSpan.FromSeconds(sec).ToString(@"mm\:ss");
+                sec <= 0 ? "—" : TimeSpan.FromSeconds(sec).ToString(@"hh\:mm\:ss");
             static string Pct(double v) => $"{v * 100:F1} %";
 
             // Stĺpec „Replikácia" — živé hodnoty z lokálnych kolektorov agentov.

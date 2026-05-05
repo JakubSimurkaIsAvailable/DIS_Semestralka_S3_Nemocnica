@@ -10,6 +10,7 @@ using DIS_Semestralka_S3_Nemocnica.Collectors;
 using System.Collections.Concurrent;
 using OSPAnimator;
 using System.Windows.Media;
+using Simulation.Resources;
 
 namespace Simulation
 {
@@ -58,10 +59,6 @@ namespace Simulation
         private AnimShapeItem[] _animSestry = [];
         private AnimShapeItem[] _animLekari = [];
 
-        private readonly Queue<int> _animVolneSlotB  = new();
-        private readonly Queue<int> _animVolneSlotA  = new();
-        private readonly Queue<int> _animVolnaSestra = new();
-        private readonly Queue<int> _animVolnyLekar  = new();
 
         private readonly Dictionary<int, (bool IsA, int Slot)>   _animPacientMiestnost = new();
         private readonly Dictionary<int, (int Sestra, int Lekar)> _animPacientStaff    = new();
@@ -204,11 +201,6 @@ namespace Simulation
             _animPacientStaff.Clear();
             _animMiestnosti = new List<AnimShapeItem>();
 
-            _animVolneSlotB.Clear();
-            for (int i = 0; i < KonfMiestnostiB; i++) _animVolneSlotB.Enqueue(i);
-            _animVolneSlotA.Clear();
-            for (int i = 0; i < KonfMiestnostiA; i++) _animVolneSlotA.Enqueue(i);
-
             _animVolneSlotVV.Clear();  _animPacientVVSlot.Clear();  _animVVSlotMax = 0;
             _animVolneSlotOse.Clear(); _animPacientOseSlot.Clear();
             _sestraRoom.Clear();
@@ -246,9 +238,6 @@ namespace Simulation
                 }
             });
             if (needCreate) _animSestry = target;
-            _animVolnaSestra.Clear();
-            for (int i = 0; i < KonfSestry; i++)
-                _animVolnaSestra.Enqueue(i);
         }
 
         private void AnimInitLekari(Animator anim)
@@ -277,9 +266,6 @@ namespace Simulation
                 }
             });
             if (needCreate) _animLekari = target;
-            _animVolnyLekar.Clear();
-            for (int i = 0; i < KonfLekari; i++)
-                _animVolnyLekar.Enqueue(i);
         }
 
         private void AnimInitMiestnosti(Animator anim)
@@ -381,21 +367,18 @@ namespace Simulation
         }
 
         // VV resources allocated: patient moves to room, nurse slot reserved
-        public void AnimAllocVVRoom(int pacientId)
+        public void AnimAllocVVRoom(int pacientId, Sestra sestra, MiestnostB miestnost)
         {
             if (_animPacientVVSlot.TryGetValue(pacientId, out var qslot))
             {
                 _animVolneSlotVV.Enqueue(qslot);
                 _animPacientVVSlot.Remove(pacientId);
             }
-            if (_animVolneSlotB.Count == 0) return;
-            int slot = _animVolneSlotB.Dequeue();
-            _animPacientMiestnost[pacientId] = (false, slot);
-            var (px, py) = SimAnim.RoomPatientPos(false, slot, KonfMiestnostiA, KonfMiestnostiB);
+            _animPacientMiestnost[pacientId] = (false, miestnost.Id);
+            var (px, py) = SimAnim.RoomPatientPos(false, miestnost.Id, KonfMiestnostiA, KonfMiestnostiB);
             if (_animPacienti.TryGetValue(pacientId, out var item))
                 item.SetPosition(CurrentTime, px, py);
-            int si = _animVolnaSestra.Count > 0 ? _animVolnaSestra.Dequeue() : 0;
-            _animPacientStaff[pacientId] = (si, -1);
+            _animPacientStaff[pacientId] = (sestra.Id, -1);
         }
 
         // Nurse walks to VV room over 'trvanie' sim-seconds (0 = already there)
@@ -440,7 +423,6 @@ namespace Simulation
         {
             if (_animPacientMiestnost.TryGetValue(pacientId, out var room))
             {
-                _animVolneSlotB.Enqueue(room.Slot);
                 _animPacientMiestnost.Remove(pacientId);
                 if (_animPacienti.TryGetValue(pacientId, out var item))
                 {
@@ -448,29 +430,19 @@ namespace Simulation
                     item.SetPosition(CurrentTime, cx, cy + 50f);
                 }
             }
-            if (_animPacientStaff.TryGetValue(pacientId, out var staff))
-            {
-                if (staff.Sestra >= 0 && staff.Sestra < _animSestry.Length)
-                    _animVolnaSestra.Enqueue(staff.Sestra);
-                _animPacientStaff.Remove(pacientId);
-            }
+            _animPacientStaff.Remove(pacientId);
         }
 
         // Osetrenie resources allocated: nurse+doctor slots reserved; patient walks separately via AnimPacientPohybDoOsetrenia
-        public void AnimAllocOsetrenieRoom(int pacientId, bool isA)
+        public void AnimAllocOsetrenieRoom(int pacientId, Miestnost miestnost, Sestra sestra, Lekar lekar)
         {
             if (_animPacientOseSlot.TryGetValue(pacientId, out var qslot))
             {
                 _animVolneSlotOse.Enqueue(qslot);
                 _animPacientOseSlot.Remove(pacientId);
             }
-            var pool = isA ? _animVolneSlotA : _animVolneSlotB;
-            if (pool.Count == 0) return;
-            int slot = pool.Dequeue();
-            _animPacientMiestnost[pacientId] = (isA, slot);
-            int si = _animVolnaSestra.Count > 0 ? _animVolnaSestra.Dequeue() : 0;
-            int li = _animVolnyLekar.Count > 0 ? _animVolnyLekar.Dequeue() : 0;
-            _animPacientStaff[pacientId] = (si, li);
+            _animPacientMiestnost[pacientId] = (miestnost.IsA, miestnost.Id);
+            _animPacientStaff[pacientId] = (sestra.Id, lekar.Id);
         }
 
         // Patient walks to osetrenie room over 'trvanie' sim-seconds (0 = already there)
@@ -484,33 +456,20 @@ namespace Simulation
             item.MoveTo(CurrentTime, trvanie, px, py);
         }
 
-        public bool SestraJeUzVMiestnosti(int pacientId)
-        {
-            if (!_animPacientStaff.TryGetValue(pacientId, out var staff) || staff.Sestra < 0) return false;
-            if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return false;
-            return _sestraRoom.TryGetValue(staff.Sestra, out var r) && r.IsA == room.IsA && r.Slot == room.Slot;
-        }
+        public bool SestraJeUzVMiestnosti(Sestra sestra, Miestnost miestnost)
+            => _sestraRoom.TryGetValue(sestra.Id, out var r) && r.IsA == miestnost.IsA && r.Slot == miestnost.Id;
 
-        public bool LekarJeUzVMiestnosti(int pacientId)
-        {
-            if (!_animPacientStaff.TryGetValue(pacientId, out var staff) || staff.Lekar < 0) return false;
-            if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return false;
-            return _lekarRoom.TryGetValue(staff.Lekar, out var r) && r.IsA == room.IsA && r.Slot == room.Slot;
-        }
+        public bool LekarJeUzVMiestnosti(Lekar lekar, Miestnost miestnost)
+            => _lekarRoom.TryGetValue(lekar.Id, out var r) && r.IsA == miestnost.IsA && r.Slot == miestnost.Id;
 
-        public bool PacientJeUzVMiestnosti(int pacientId)
-        {
-            if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return false;
-            return _pacientRoom.TryGetValue(pacientId, out var r) && r.IsA == room.IsA && r.Slot == room.Slot;
-        }
+        public bool PacientJeUzVMiestnosti(int pacientId, Miestnost miestnost)
+            => _pacientRoom.TryGetValue(pacientId, out var r) && r.IsA == miestnost.IsA && r.Slot == miestnost.Id;
 
         // Osetrenie done: release room + staff slots; patient waits in front of their ambulance
         public void AnimUvolniOsetrenie(int pacientId)
         {
             if (_animPacientMiestnost.TryGetValue(pacientId, out var room))
             {
-                if (room.IsA) _animVolneSlotA.Enqueue(room.Slot);
-                else          _animVolneSlotB.Enqueue(room.Slot);
                 _animPacientMiestnost.Remove(pacientId);
                 _pacientRoom[pacientId] = (room.IsA, room.Slot);
                 if (_animPacienti.TryGetValue(pacientId, out var item))
@@ -519,15 +478,14 @@ namespace Simulation
                     item.SetPosition(CurrentTime, cx, cy + 50f);
                 }
             }
-            if (_animPacientStaff.TryGetValue(pacientId, out var staff))
-            {
-                if (staff.Sestra >= 0 && staff.Sestra < _animSestry.Length)
-                    _animVolnaSestra.Enqueue(staff.Sestra);
-                if (staff.Lekar >= 0 && staff.Lekar < _animLekari.Length)
-                    _animVolnyLekar.Enqueue(staff.Lekar);
-                _animPacientStaff.Remove(pacientId);
-            }
+            _animPacientStaff.Remove(pacientId);
         }
+
+        public bool SestraJeVAmbulancii(Sestra sestra)
+            => _sestraRoom.ContainsKey(sestra.Id);
+
+        public bool LekarJeVAmbulancii(Lekar lekar)
+            => _lekarRoom.ContainsKey(lekar.Id);
 
         // Patient left the system
         public void AnimPacientOdsiel(int id)

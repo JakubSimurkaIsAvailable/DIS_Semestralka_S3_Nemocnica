@@ -1,4 +1,5 @@
 using OSPABA;
+using Simulation.Resources;
 
 namespace Simulation
 {
@@ -8,10 +9,15 @@ namespace Simulation
 		public int PacientId { get; set; }
 		public bool PrisielSanitkou { get; set; }
 		public int Priorita { get; set; }
-		public bool PouzilaMiestnostA { get; set; }
 		public bool JeOdchod { get; set; }
 		public bool JePresunNaOsetrenie { get; set; }
 		public double CasVstupuDoRadu { get; set; }
+
+		public Sestra? PriradenaSestrа { get; set; }
+		public Lekar? PriradenyLekar { get; set; }
+		public Miestnost? PridelenaMiestnost { get; set; }
+
+		public bool PouzilaMiestnostA => PridelenaMiestnost?.IsA ?? false;
 
         public MyMessage(OSPABA.Simulation mySim) :
 			base(mySim)
@@ -36,10 +42,12 @@ namespace Simulation
 			PacientId = original.PacientId;
 			PrisielSanitkou = original.PrisielSanitkou;
 			Priorita = original.Priorita;
-			PouzilaMiestnostA = original.PouzilaMiestnostA;
 			JeOdchod = original.JeOdchod;
 			JePresunNaOsetrenie = original.JePresunNaOsetrenie;
 			CasVstupuDoRadu = original.CasVstupuDoRadu;
+			PriradenaSestrа = original.PriradenaSestrа;
+			PriradenyLekar = original.PriradenyLekar;
+			PridelenaMiestnost = original.PridelenaMiestnost;
         }
 	}
 }

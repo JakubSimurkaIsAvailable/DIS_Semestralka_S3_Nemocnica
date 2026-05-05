@@ -57,7 +57,7 @@ namespace Agents.AgentUrgentu
 		{
 			var msg = (MyMessage)message;
 			Sim.AktualizujStavPacienta(msg.PacientId, "Presun sestry");
-			Sim.AnimAllocVVRoom(msg.PacientId);
+			Sim.AnimAllocVVRoom(msg.PacientId, msg.PriradenaSestrа!, (Simulation.Resources.MiestnostB)msg.PridelenaMiestnost!);
 			message.Code = Mc.PresunPersonalu;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
@@ -91,6 +91,8 @@ namespace Agents.AgentUrgentu
 			Sim.AnimUvolniVV(msg.PacientId);
 
 			var uvolni = new MyMessage(MySim);
+			uvolni.PriradenaSestrа    = msg.PriradenaSestrа;
+			uvolni.PridelenaMiestnost = msg.PridelenaMiestnost;
 			uvolni.JePresunNaOsetrenie = false;
 			uvolni.Code = Mc.UvolnenieAmbulancie;
 			uvolni.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
@@ -108,7 +110,7 @@ namespace Agents.AgentUrgentu
 			var msg = (MyMessage)message;
 			Sim.AktualizujStavPacienta(msg.PacientId, "Presun personálu");
 			Sim.AktualizujMiestnostPacienta(msg.PacientId, msg.PouzilaMiestnostA);
-			Sim.AnimAllocOsetrenieRoom(msg.PacientId, msg.PouzilaMiestnostA);
+			Sim.AnimAllocOsetrenieRoom(msg.PacientId, msg.PridelenaMiestnost!, msg.PriradenaSestrа!, msg.PriradenyLekar!);
 			message.Code = Mc.PresunPersonalu;
 			message.Addressee = MySim.FindAgent(SimId.AgentPresunov);
 			Request(message);
@@ -122,7 +124,9 @@ namespace Agents.AgentUrgentu
 			Sim.AnimUvolniOsetrenie(msg.PacientId);
 
 			var uvolni = new MyMessage(MySim);
-			uvolni.PouzilaMiestnostA = msg.PouzilaMiestnostA;
+			uvolni.PriradenaSestrа    = msg.PriradenaSestrа;
+			uvolni.PriradenyLekar     = msg.PriradenyLekar;
+			uvolni.PridelenaMiestnost = msg.PridelenaMiestnost;
 			uvolni.JePresunNaOsetrenie = true;
 			uvolni.Code = Mc.UvolnenieAmbulancie;
 			uvolni.Addressee = MySim.FindAgent(SimId.AgentZdrojov);

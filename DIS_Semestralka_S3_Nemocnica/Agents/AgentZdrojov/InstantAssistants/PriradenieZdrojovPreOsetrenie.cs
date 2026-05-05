@@ -15,10 +15,9 @@ namespace Agents.AgentZdrojov.InstantAssistants
 		override public void Execute(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			MyAgent.VolneLekari--;
-			MyAgent.VolneSestry--;
-			if (msg.PouzilaMiestnostA) MyAgent.VolneMiestnostiA--;
-			else                       MyAgent.VolneMiestnostiB--;
+			// PridelenaMiestnost (A alebo B) already set by ManagerZdrojov before calling Execute
+			msg.PriradenaSestrа = MyAgent.SestryVolne.Dequeue();
+			msg.PriradenyLekar  = MyAgent.LekariVolne.Dequeue();
 		}
 		public new AgentZdrojov MyAgent
 		{

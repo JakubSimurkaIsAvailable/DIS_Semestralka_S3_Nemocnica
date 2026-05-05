@@ -1,5 +1,6 @@
 using OSPABA;
 using Simulation;
+using Simulation.Resources;
 using Agents.AgentZdrojov;
 
 namespace Agents.AgentZdrojov.InstantAssistants
@@ -17,15 +18,15 @@ namespace Agents.AgentZdrojov.InstantAssistants
 			var msg = (MyMessage)message;
 			if (msg.JePresunNaOsetrenie)
 			{
-				MyAgent.VolneLekari++;
-				MyAgent.VolneSestry++;
-				if (msg.PouzilaMiestnostA) MyAgent.VolneMiestnostiA++;
-				else                       MyAgent.VolneMiestnostiB++;
+				if (msg.PriradenaSestrа != null)    MyAgent.SestryVolne.Enqueue(msg.PriradenaSestrа);
+				if (msg.PriradenyLekar  != null)    MyAgent.LekariVolne.Enqueue(msg.PriradenyLekar);
+				if      (msg.PridelenaMiestnost is MiestnostA ma) MyAgent.MiestnostiAVolne.Enqueue(ma);
+				else if (msg.PridelenaMiestnost is MiestnostB mb) MyAgent.MiestnostiBVolne.Enqueue(mb);
 			}
 			else
 			{
-				MyAgent.VolneSestry++;
-				MyAgent.VolneMiestnostiB++;
+				if (msg.PriradenaSestrа != null)    MyAgent.SestryVolne.Enqueue(msg.PriradenaSestrа);
+				if (msg.PridelenaMiestnost is MiestnostB mb)      MyAgent.MiestnostiBVolne.Enqueue(mb);
 			}
 		}
 		public new AgentZdrojov MyAgent

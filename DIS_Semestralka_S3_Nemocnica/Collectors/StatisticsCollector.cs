@@ -45,9 +45,7 @@ namespace DIS_Semestralka_S3_Nemocnica.Collectors
 
         public (double Lower, double Upper)? GetConfidenceInterval(double z = 1.96)
         {
-            if (ValueCounter < 30)
-                return null;
-
+            if (ValueCounter < 30) return null;
             double margin = z * StandardDeviation / Math.Sqrt(ValueCounter);
             return (Average - margin, Average + margin);
         }
