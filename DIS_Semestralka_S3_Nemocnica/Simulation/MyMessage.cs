@@ -12,6 +12,7 @@ namespace Simulation
 		public bool JeOdchod { get; set; }
 		public bool JePresunNaOsetrenie { get; set; }
 		public double CasVstupuDoRadu { get; set; }
+		public int OsetrenieBucket { get; set; }  // 0=RadA, 1=RadAB, 2=RadB
 
 		public Sestra? PriradenaSestrа { get; set; }
 		public Lekar? PriradenyLekar { get; set; }
@@ -45,6 +46,7 @@ namespace Simulation
 			JeOdchod = original.JeOdchod;
 			JePresunNaOsetrenie = original.JePresunNaOsetrenie;
 			CasVstupuDoRadu = original.CasVstupuDoRadu;
+			OsetrenieBucket = original.OsetrenieBucket;
 			PriradenaSestrа = original.PriradenaSestrа;
 			PriradenyLekar = original.PriradenyLekar;
 			PridelenaMiestnost = original.PridelenaMiestnost;

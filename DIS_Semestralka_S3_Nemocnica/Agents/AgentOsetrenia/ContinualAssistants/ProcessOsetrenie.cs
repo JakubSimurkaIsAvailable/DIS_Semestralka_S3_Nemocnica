@@ -17,10 +17,10 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
 		{
 			var seed = ((MySimulation)mySim).SeedRandom;
 			_samRNG = new SpojityEmpirickyGenerator(seed,
-				new List<double> { 10 * 60, 12 * 60, 14 * 60 },
-				new List<double> { 12 * 60, 14 * 60, 18 * 60 },
+				new List<double> { 10, 12, 14 },
+				new List<double> { 12, 14, 18 },
 				new List<double> { 0.1, 0.6, 0.3 });
-			_sanitkaRNG = new RozdelenieSpojite(seed, 15 * 60, 30 * 60);
+			_sanitkaRNG = new RozdelenieSpojite(seed, 15, 30);
 		}
 
 		override public void PrepareReplication()
@@ -32,7 +32,7 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
         public void ProcessStart(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			double cas = msg.PrisielSanitkou ? _sanitkaRNG.Generate() : _samRNG.Generate();
+			double cas = msg.PrisielSanitkou ? _sanitkaRNG.Generate() * 60 : _samRNG.Generate() * 60;
 			message.Code = Mc.OsetrenieSkoncilo;
 			Hold(cas, message);
 		}

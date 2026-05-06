@@ -67,14 +67,40 @@ namespace Agents.AgentUrgentu
 		public void ProcessPresunPersonalu(MessageForm message)
 		{
 			var msg = (MyMessage)message;
+			var agZdrojov = (Agents.AgentZdrojov.AgentZdrojov)MySim.FindAgent(SimId.AgentZdrojov);
+
 			if (msg.JePresunNaOsetrenie)
 			{
+				double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
+				agZdrojov.LocDobaOsetrenie.AddValue(wait);
+				var bucketStat = msg.OsetrenieBucket switch
+				{
+					0 => agZdrojov.LocDobaOsetrenieA,
+					1 => agZdrojov.LocDobaOsetrenieAB,
+					_ => agZdrojov.LocDobaOsetrenieB
+				};
+				bucketStat.AddValue(wait);
+				if (Sim.Pacienti.TryGetValue(msg.PacientId, out var pacInfo))
+				{
+					double dobaPDO = MySim.CurrentTime - pacInfo.CasPrichodu;
+					agZdrojov.LocDobaPrichodDoOsetrenia.AddValue(dobaPDO);
+					if (pacInfo.PrisielSanitkou)
+						agZdrojov.LocDobaPrichodDoOsetreniaSanitka.AddValue(dobaPDO);
+					else
+						agZdrojov.LocDobaPrichodDoOsetreniaPeso.AddValue(dobaPDO);
+				}
 				Sim.AktualizujStavPacienta(msg.PacientId, "Ošetrenie prebieha");
 				message.Code = Mc.VykonanieOsetrenia;
 				message.Addressee = MySim.FindAgent(SimId.AgentOsetrenia);
 			}
 			else
 			{
+				double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
+				agZdrojov.LocDobaVV.AddValue(wait);
+				if (msg.PrisielSanitkou)
+					agZdrojov.LocDobaVVSanitka.AddValue(wait);
+				else
+					agZdrojov.LocDobaVVPeso.AddValue(wait);
 				Sim.AktualizujStavPacienta(msg.PacientId, "VV prebieha");
 				message.Code = Mc.VykonanieVstupnehoVysetrenia;
 				message.Addressee = MySim.FindAgent(SimId.AgentVstupnehoVysetrenia);
@@ -90,18 +116,18 @@ namespace Agents.AgentUrgentu
 			Sim.AktualizujStavPacienta(msg.PacientId, "Čaká na ošetrenie");
 			Sim.AnimUvolniVV(msg.PacientId);
 
-			var uvolni = new MyMessage(MySim);
+            msg.JePresunNaOsetrenie = true;
+            message.Code = Mc.ZaradenieDoRaduOsetrenie;
+            message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
+            Notice(message);
+
+            var uvolni = new MyMessage(MySim);
 			uvolni.PriradenaSestrа    = msg.PriradenaSestrа;
 			uvolni.PridelenaMiestnost = msg.PridelenaMiestnost;
 			uvolni.JePresunNaOsetrenie = false;
 			uvolni.Code = Mc.UvolnenieAmbulancie;
 			uvolni.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
 			Notice(uvolni);
-
-			msg.JePresunNaOsetrenie = true;
-			message.Code = Mc.ZaradenieDoRaduOsetrenie;
-			message.Addressee = MySim.FindAgent(SimId.AgentZdrojov);
-			Notice(message);
 		}
 
 		//meta! sender="AgentZdrojov", id="130", type="Notice"

@@ -47,8 +47,8 @@ namespace Agents.AgentZdrojov
 		{
             ((UvolnenieZdrojov)MyAgent.FindAssistant(SimId.UvolnenieZdrojov)).Execute(message);
             ZaznamVytazenosti();
-            SkusSpustitVV();
             SkusSpustitOsetrenie();
+            SkusSpustitVV();
         }
 
 		private void SkusSpustitVV()
@@ -57,12 +57,6 @@ namespace Agents.AgentZdrojov
 
 			var msg = MyAgent.RadVV.Dequeue();
 			MyAgent.RadVVIds.Remove(msg.PacientId);
-			double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
-			MyAgent.LocDobaVV.AddValue(wait);
-			if (msg.PrisielSanitkou)
-				MyAgent.LocDobaVVSanitka.AddValue(wait);
-			else
-				MyAgent.LocDobaVVPeso.AddValue(wait);
 
 			msg.PridelenaMiestnost = MyAgent.MiestnostiBVolne.Dequeue();
 			((PriradenieZdrojovPreVstupneVysetrenie)MyAgent.FindAssistant(SimId.PriradenieZdrojovPreVstupneVysetrenie)).Execute(msg);
@@ -80,7 +74,7 @@ namespace Agents.AgentZdrojov
 			// RadA (priorita 1-2): len miestnosť A
 			if (MyAgent.RadA.Count > 0 && MyAgent.MiestnostiAVolne.Count > 0)
 			{
-				ServeOsetrenie(MyAgent.RadA, MyAgent.RadAItems, useA: true, MyAgent.LocDobaOsetrenieA);
+				ServeOsetrenie(MyAgent.RadA, MyAgent.RadAItems, useA: true, bucket: 0);
 				return;
 			}
 
@@ -92,14 +86,14 @@ namespace Agents.AgentZdrojov
 				else if (MyAgent.MiestnostiAVolne.Count > 0 && MyAgent.RadA.Count == 0) useA = true;
 				else    return;
 
-				ServeOsetrenie(MyAgent.RadAB, MyAgent.RadABItems, useA, MyAgent.LocDobaOsetrenieAB);
+				ServeOsetrenie(MyAgent.RadAB, MyAgent.RadABItems, useA, bucket: 1);
 				return;
 			}
 
 			// RadB (priorita 5): len miestnosť B
 			if (MyAgent.RadB.Count > 0 && MyAgent.MiestnostiBVolne.Count > 0)
 			{
-				ServeOsetrenie(MyAgent.RadB, MyAgent.RadBItems, useA: false, MyAgent.LocDobaOsetrenieB);
+				ServeOsetrenie(MyAgent.RadB, MyAgent.RadBItems, useA: false, bucket: 2);
 			}
 		}
 
@@ -107,22 +101,11 @@ namespace Agents.AgentZdrojov
 			PriorityQueue<MyMessage, (int, int)> rad,
 			List<(int Id, int Priorita)> items,
 			bool useA,
-			StatisticsCollector specificStat)
+			int bucket)
 		{
 			var msg = rad.Dequeue();
 			items.RemoveAll(x => x.Id == msg.PacientId);
-			double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
-			MyAgent.LocDobaOsetrenie.AddValue(wait);
-			specificStat.AddValue(wait);
-			if (Sim.Pacienti.TryGetValue(msg.PacientId, out var pacInfo))
-			{
-				double dobaPDO = MySim.CurrentTime - pacInfo.CasPrichodu;
-				MyAgent.LocDobaPrichodDoOsetrenia.AddValue(dobaPDO);
-				if (pacInfo.PrisielSanitkou)
-					MyAgent.LocDobaPrichodDoOsetreniaSanitka.AddValue(dobaPDO);
-				else
-					MyAgent.LocDobaPrichodDoOsetreniaPeso.AddValue(dobaPDO);
-			}
+			msg.OsetrenieBucket = bucket;
 			msg.PridelenaMiestnost = useA
 				? (Miestnost)MyAgent.MiestnostiAVolne.Dequeue()
 				: MyAgent.MiestnostiBVolne.Dequeue();

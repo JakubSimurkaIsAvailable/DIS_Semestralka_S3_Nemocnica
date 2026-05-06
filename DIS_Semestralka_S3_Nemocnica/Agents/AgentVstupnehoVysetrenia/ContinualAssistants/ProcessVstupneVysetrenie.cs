@@ -17,10 +17,10 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 		{
 			var seed = ((MySimulation)mySim).SeedRandom;
 			empiricRNG = new SpojityEmpirickyGenerator(seed,
-				new List<double> { 3 * 60, 5 * 60 },
-				new List<double> { 5 * 60, 9 * 60 },
+				new List<double> { 3, 5 },
+				new List<double> { 5, 9 },
 				new List<double> { 0.6, 0.4 });
-			discreteRNG = new RozdelenieDiskretne(seed, 4, 9); // {4,5,6,7,8} minút
+			discreteRNG = new RozdelenieDiskretne(seed, 4 , 9); // {4,5,6,7,8} minút
 		}
 
 		override public void PrepareReplication()
@@ -33,8 +33,8 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 		{
 			var msg = (MyMessage)message;
 			double trvanie = msg.PrisielSanitkou
-				? (double)discreteRNG.Generate() * 60.0
-				: empiricRNG.Generate();
+				? (double)discreteRNG.Generate() * 60
+				: empiricRNG.Generate() * 60;
 			message.Code = Mc.VstupneVysetrenieSkoncilo;
 			Hold(trvanie, message);
 		}
