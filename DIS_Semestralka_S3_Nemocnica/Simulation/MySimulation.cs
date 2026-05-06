@@ -77,6 +77,7 @@ namespace Simulation
         private List<AnimShapeItem> _animMiestnosti = new();
 
         private Animator? AnimCore => Animator as Animator;
+        public bool MaxSpeed { get; set; }
 
         // ──────────────────────────────────────────────────────────────
 
@@ -156,7 +157,11 @@ namespace Simulation
         override public void PrepareReplication()
         {
             base.PrepareReplication();
-            SetSimSpeed(GuiInterval, GuiDurationMs > 0 ? GuiDurationMs / 1000.0 : 0.001);
+            if (MaxSpeed)
+                SetMaxSimSpeed();
+            else
+                SetSimSpeed(GuiInterval, GuiDurationMs > 0 ? GuiDurationMs / 1000.0 : 0.001);
+
             if (Zastavit)
             {
                 StopSimulation();
@@ -386,9 +391,8 @@ namespace Simulation
         {
             if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return;
             if (!_animPacientStaff.TryGetValue(pacientId, out var staff) || staff.Sestra < 0) return;
-            if (staff.Sestra >= _animSestry.Length) return;
             _sestraRoom[staff.Sestra] = (room.IsA, room.Slot);
-            if (trvanie <= 0) return;
+            if (staff.Sestra >= _animSestry.Length || trvanie <= 0) return;
             var (sx, sy) = SimAnim.RoomStaffPos(room.IsA, room.Slot, 0, KonfMiestnostiA, KonfMiestnostiB);
             _animSestry[staff.Sestra].MoveTo(CurrentTime, trvanie, sx, sy);
         }
@@ -398,19 +402,19 @@ namespace Simulation
         {
             if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return;
             if (!_animPacientStaff.TryGetValue(pacientId, out var staff)) return;
-            if (staff.Sestra >= 0 && staff.Sestra < _animSestry.Length)
+            if (staff.Sestra >= 0)
             {
                 _sestraRoom[staff.Sestra] = (room.IsA, room.Slot);
-                if (trvanieSestra > 0)
+                if (staff.Sestra < _animSestry.Length && trvanieSestra > 0)
                 {
                     var (sx, sy) = SimAnim.RoomStaffPos(room.IsA, room.Slot, 0, KonfMiestnostiA, KonfMiestnostiB);
                     _animSestry[staff.Sestra].MoveTo(CurrentTime, trvanieSestra, sx, sy);
                 }
             }
-            if (staff.Lekar >= 0 && staff.Lekar < _animLekari.Length)
+            if (staff.Lekar >= 0)
             {
                 _lekarRoom[staff.Lekar] = (room.IsA, room.Slot);
-                if (trvanieLekar > 0)
+                if (staff.Lekar < _animLekari.Length && trvanieLekar > 0)
                 {
                     var (lx, ly) = SimAnim.RoomStaffPos(room.IsA, room.Slot, 1, KonfMiestnostiA, KonfMiestnostiB);
                     _animLekari[staff.Lekar].MoveTo(CurrentTime, trvanieLekar, lx, ly);
@@ -448,10 +452,9 @@ namespace Simulation
         // Patient walks to osetrenie room over 'trvanie' sim-seconds (0 = already there)
         public void AnimPacientPohybDoOsetrenia(int pacientId, double trvanie)
         {
-            if (!_animPacienti.TryGetValue(pacientId, out var item)) return;
             if (!_animPacientMiestnost.TryGetValue(pacientId, out var room)) return;
             _pacientRoom[pacientId] = (room.IsA, room.Slot);
-            if (trvanie <= 0) return;
+            if (trvanie <= 0 || !_animPacienti.TryGetValue(pacientId, out var item)) return;
             var (px, py) = SimAnim.RoomPatientPos(room.IsA, room.Slot, KonfMiestnostiA, KonfMiestnostiB);
             item.MoveTo(CurrentTime, trvanie, px, py);
         }

@@ -167,12 +167,12 @@ namespace DIS_Semestralka_S3_Nemocnica
         private void AplukujSpomalenie()
         {
             if (_sim == null) return;
+            _sim.MaxSpeed = _maxSpeed;
             if (_maxSpeed)
             {
-                // Also update GuiInterval/GuiDurationMs so PrepareReplication() doesn't override us
-                _sim.GuiInterval   = 3_600_000;
+                _sim.GuiInterval = 1;
                 _sim.GuiDurationMs = 0;
-                _sim.SetSimSpeed(3_600_000, 0.001);
+                _sim.SetMaxSimSpeed();
                 return;
             }
             int ms  = trkDuration.Value;
