@@ -29,6 +29,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             btnMaxSpeed = new System.Windows.Forms.Button();
             btnReplikacie = new System.Windows.Forms.Button();
             btnVysledky = new System.Windows.Forms.Button();
+            cbCsvFinal = new System.Windows.Forms.CheckBox();
             pnlKonfZdrojov = new System.Windows.Forms.FlowLayoutPanel();
             lblSestryKonfLabel = new System.Windows.Forms.Label();
             nudSestry = new System.Windows.Forms.NumericUpDown();
@@ -137,6 +138,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             pnlTop.Controls.Add(btnMaxSpeed);
             pnlTop.Controls.Add(btnReplikacie);
             pnlTop.Controls.Add(btnVysledky);
+            pnlTop.Controls.Add(cbCsvFinal);
             pnlTop.BackColor = System.Drawing.SystemColors.ControlLight;
             pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
             pnlTop.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
@@ -247,6 +249,12 @@ namespace DIS_Semestralka_S3_Nemocnica
             btnVysledky.Text = "📊 Výsledky";
             btnVysledky.UseVisualStyleBackColor = false;
             btnVysledky.Click += BtnVysledky_Click;
+
+            // cbCsvFinal
+            cbCsvFinal.AutoSize = true;
+            cbCsvFinal.Margin = new System.Windows.Forms.Padding(12, 6, 0, 0);
+            cbCsvFinal.Text = "CSV (max speed)";
+            cbCsvFinal.CheckedChanged += CbCsvFinal_CheckedChanged;
 
             // pnlKonfZdrojov
             pnlKonfZdrojov.Controls.Add(lblSestryKonfLabel);
@@ -737,5 +745,6 @@ namespace DIS_Semestralka_S3_Nemocnica
         private System.Windows.Forms.Button btnMaxSpeed;
         private System.Windows.Forms.Button btnReplikacie;
         private System.Windows.Forms.Button btnVysledky;
+        private System.Windows.Forms.CheckBox cbCsvFinal;
     }
 }
