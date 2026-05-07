@@ -82,6 +82,14 @@ namespace DIS_Semestralka_S3_Nemocnica
                 s => (double)s.AgentOkolia.LocPocetPeso,     v => v);
             Add("Počty – sanitkou", "Počet pacientov – sanitkou",     "počet",
                 s => (double)s.AgentOkolia.LocPocetSanitka,  v => v);
+            Add("Počty - Dlzka radu VV", "Dĺžka radu na VV", "počet",
+                s => s.AgentZdrojov.LocDlzkaRaduVV.TotalWeight > 0 ? s.AgentZdrojov.LocDlzkaRaduVV.WeightedAverage : double.NaN, v => v);
+            Add("Počty - Dlzka radu A", "Dĺžka radu na Rad A", "počet",
+                s => s.AgentZdrojov.LocDlzkaRaduA.TotalWeight > 0 ? s.AgentZdrojov.LocDlzkaRaduA.WeightedAverage : double.NaN, v => v);
+            Add("Počty - Dlzka radu A/B", "Dlzka radu na Rad A/B", "počet",
+                s => s.AgentZdrojov.LocDlzkaRaduAB.TotalWeight > 0 ? s.AgentZdrojov.LocDlzkaRaduAB.WeightedAverage : double.NaN, v => v);
+            Add("Počty - Dlzka radu B", "Dlzka radu na Rad B ", "počet",
+                s => s.AgentZdrojov.LocDlzkaRaduB.TotalWeight > 0 ? s.AgentZdrojov.LocDlzkaRaduB.WeightedAverage : double.NaN, v => v);
 
             _onGuiTick = s =>
             {

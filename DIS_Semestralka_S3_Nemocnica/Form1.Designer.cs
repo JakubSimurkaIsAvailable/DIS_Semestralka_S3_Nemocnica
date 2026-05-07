@@ -45,6 +45,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             lblIntervalLabel = new System.Windows.Forms.Label();
             trkInterval = new System.Windows.Forms.TrackBar();
             lblIntervalVal = new System.Windows.Forms.Label();
+            cbCsvLog = new System.Windows.Forms.CheckBox();
             pnlStatus = new System.Windows.Forms.Panel();
             lblSimCas = new System.Windows.Forms.Label();
             lblReplikacia = new System.Windows.Forms.Label();
@@ -318,6 +319,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             pnlSpeed.Controls.Add(lblIntervalLabel);
             pnlSpeed.Controls.Add(trkInterval);
             pnlSpeed.Controls.Add(lblIntervalVal);
+            pnlSpeed.Controls.Add(cbCsvLog);
             pnlSpeed.BackColor = System.Drawing.SystemColors.ControlLight;
             pnlSpeed.Dock = System.Windows.Forms.DockStyle.Top;
             pnlSpeed.Height = 55;
@@ -364,6 +366,12 @@ namespace DIS_Semestralka_S3_Nemocnica
             lblIntervalVal.AutoSize = true;
             lblIntervalVal.Location = new System.Drawing.Point(802, 10);
             lblIntervalVal.Text = "60 s";
+
+            // cbCsvLog
+            cbCsvLog.AutoSize = true;
+            cbCsvLog.Location = new System.Drawing.Point(910, 10);
+            cbCsvLog.Text = "CSV log (spomalenie)";
+            cbCsvLog.CheckedChanged += CbCsvLog_CheckedChanged;
 
             // pnlStatus
             pnlStatus.Controls.Add(lblSimCas);
@@ -682,6 +690,7 @@ namespace DIS_Semestralka_S3_Nemocnica
         private System.Windows.Forms.Label lblIntervalLabel;
         private System.Windows.Forms.TrackBar trkInterval;
         private System.Windows.Forms.Label lblIntervalVal;
+        private System.Windows.Forms.CheckBox cbCsvLog;
         private System.Windows.Forms.Panel pnlStatus;
         private System.Windows.Forms.Label lblSimCas;
         private System.Windows.Forms.Label lblReplikacia;
