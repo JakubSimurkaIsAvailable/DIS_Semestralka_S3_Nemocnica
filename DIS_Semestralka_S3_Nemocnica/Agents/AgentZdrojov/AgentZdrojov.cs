@@ -33,9 +33,11 @@ namespace Agents.AgentZdrojov
 
 		public PriorityQueue<MyMessage, (int, int)> RadVV { get; } = new();
 		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadA  { get; } = new();
+		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadAB { get; } = new();
 		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadB  { get; } = new();
 		public List<int> RadVVIds { get; } = new();
 		public List<(int Id, int Priorita)> RadAItems  { get; } = new();
+		public List<(int Id, int Priorita)> RadABItems { get; } = new();
 		public List<(int Id, int Priorita)> RadBItems  { get; } = new();
 		public HashSet<int> CakajuciOsetrenieIds { get; } = new();
 
@@ -55,7 +57,13 @@ namespace Agents.AgentZdrojov
 		public WeightedStatisticsCollector LocVytazenostMiestnostiA { get; private set; } = new();
 		public WeightedStatisticsCollector LocVytazenostMiestnostiB { get; private set; } = new();
 
-		public void ResetLocalStats()
+		public WeightedStatisticsCollector LocDlzkaRaduA { get; private set; } = new();
+		public WeightedStatisticsCollector LocDlzkaRaduAB { get; private set; } = new();
+		public WeightedStatisticsCollector LocDlzkaRaduB { get; private set; } = new();
+		public WeightedStatisticsCollector LocDlzkaRaduVV { get; private set; } = new();
+
+
+        public void ResetLocalStats()
 		{
 			LocDobaVV             = new StatisticsCollector();
 			LocDobaVVPeso         = new StatisticsCollector();
@@ -71,7 +79,14 @@ namespace Agents.AgentZdrojov
 			LocVytazenostSestry      = new WeightedStatisticsCollector();
 			LocVytazenostMiestnostiA = new WeightedStatisticsCollector();
 			LocVytazenostMiestnostiB = new WeightedStatisticsCollector();
-		}
+
+			//------
+			LocDlzkaRaduA = new WeightedStatisticsCollector();
+			LocDlzkaRaduAB = new WeightedStatisticsCollector();
+			LocDlzkaRaduB = new WeightedStatisticsCollector();
+			LocDlzkaRaduVV = new WeightedStatisticsCollector();
+
+        }
 
 		public void ResetLocalStatsAtWarmupEnd(double currentTime)
 		{
@@ -120,9 +135,11 @@ namespace Agents.AgentZdrojov
 			base.PrepareReplication();
 			RadVV.Clear();
 			RadA.Clear();
+			RadAB.Clear();
 			RadB.Clear();
 			RadVVIds.Clear();
 			RadAItems.Clear();
+			RadABItems.Clear();
 			RadBItems.Clear();
 			CakajuciOsetrenieIds.Clear();
 		}

@@ -19,7 +19,9 @@ namespace Agents.AgentZdrojov.InstantAssistants
 			int skupinaKey = msg.PrisielSanitkou ? 0 : 1;
 			MyAgent.RadVV.Enqueue(msg, (skupinaKey, msg.PacientId));
 			MyAgent.RadVVIds.Add(msg.PacientId);
-		}
+			MyAgent.LocDlzkaRaduVV.AddWeightedValue(MyAgent.RadVV.Count, MySim.CurrentTime);
+			
+        }
 		public new AgentZdrojov MyAgent
 		{
 			get

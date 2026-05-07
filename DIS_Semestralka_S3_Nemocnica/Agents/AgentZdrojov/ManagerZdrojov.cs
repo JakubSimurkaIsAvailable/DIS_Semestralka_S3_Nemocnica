@@ -61,7 +61,8 @@ namespace Agents.AgentZdrojov
 			// Meriame čakanie v rade tu – nie po príchode sestry (správny bod)
 			double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
 			MyAgent.LocDobaVV.AddValue(wait);
-			if (msg.PrisielSanitkou)
+			MyAgent.LocDlzkaRaduVV.AddWeightedValue(MyAgent.RadVV.Count, MySim.CurrentTime);
+            if (msg.PrisielSanitkou)
 				MyAgent.LocDobaVVSanitka.AddValue(wait);
 			else
 				MyAgent.LocDobaVVPeso.AddValue(wait);
@@ -84,13 +85,20 @@ namespace Agents.AgentZdrojov
 				ServeOsetrenie(MyAgent.RadA, MyAgent.RadAItems, useA: true);
 			}
 
-			// Also independently serve one RadB patient (priority 3-5) if resources allow
-			if (MyAgent.RadB.Count > 0 && MyAgent.LekariVolne.Count > 0 && MyAgent.SestryVolne.Count > 0)
+			// Serve one RadAB patient (priority 3-4) from B if possible, otherwise from A
+			if (MyAgent.RadAB.Count > 0 && MyAgent.LekariVolne.Count > 0 && MyAgent.SestryVolne.Count > 0)
 			{
 				bool bVolna = MyAgent.MiestnostiBVolne.Count > 0;
 				bool aVolna = MyAgent.MiestnostiAVolne.Count > 0;
-				if (bVolna) { ServeOsetrenie(MyAgent.RadB, MyAgent.RadBItems, useA: false); }
-				else if (aVolna && MyAgent.RadB.Peek().Priorita < 5) { ServeOsetrenie(MyAgent.RadB, MyAgent.RadBItems, useA: true); }
+				if (bVolna) { ServeOsetrenie(MyAgent.RadAB, MyAgent.RadABItems, useA: false); }
+				else if (aVolna) { ServeOsetrenie(MyAgent.RadAB, MyAgent.RadABItems, useA: true); }
+			}
+
+			// Serve one RadB patient (priority 5) only from a type B room
+			if (MyAgent.RadB.Count > 0 && MyAgent.MiestnostiBVolne.Count > 0
+				&& MyAgent.LekariVolne.Count > 0 && MyAgent.SestryVolne.Count > 0)
+			{
+				ServeOsetrenie(MyAgent.RadB, MyAgent.RadBItems, useA: false);
 			}
 		}
 
@@ -112,8 +120,13 @@ namespace Agents.AgentZdrojov
 				1 => MyAgent.LocDobaOsetrenieAB,
 				_ => MyAgent.LocDobaOsetrenieB
 			}).AddValue(wait);
-
-			msg.PridelenaMiestnost = useA
+			(msg.OsetrenieBucket switch
+			{
+				0 => MyAgent.LocDlzkaRaduA,
+				1 => MyAgent.LocDlzkaRaduAB,
+				_ => MyAgent.LocDlzkaRaduB
+			}).AddWeightedValue(MyAgent.RadVV.Count, MySim.CurrentTime);
+            msg.PridelenaMiestnost = useA
 				? (Miestnost)MyAgent.MiestnostiAVolne.Dequeue()
 				: MyAgent.MiestnostiBVolne.Dequeue();
 			((PriradenieZdrojovPreOsetrenie)MyAgent.FindAssistant(SimId.PriradenieZdrojovPreOsetrenie)).Execute(msg);

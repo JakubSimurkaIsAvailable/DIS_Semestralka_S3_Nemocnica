@@ -53,6 +53,10 @@ namespace Simulation
         public StatisticsCollector VytazenostSestry       { get; } = new(true);
         public StatisticsCollector VytazenostMiestnostiA  { get; } = new(true);
         public StatisticsCollector VytazenostMiestnostiB  { get; } = new(true);
+        public StatisticsCollector DlzkaRadA              { get; } = new(true);
+        public  StatisticsCollector DlzkaRadAB            { get; } = new(true);
+        public StatisticsCollector DlzkaRadB              { get; } = new(true);
+        public StatisticsCollector DlzkaRadVV             { get; } = new(true);
 
         // ── Animation state (sim thread only) ─────────────────────────
         private readonly Dictionary<int, AnimShapeItem> _animPacienti = new();
@@ -149,6 +153,10 @@ namespace Simulation
                 VytazenostSestry.AddValue(z.LocVytazenostSestry.WeightedAverage);
                 VytazenostMiestnostiA.AddValue(z.LocVytazenostMiestnostiA.WeightedAverage);
                 VytazenostMiestnostiB.AddValue(z.LocVytazenostMiestnostiB.WeightedAverage);
+                DlzkaRadA.AddValue(z.LocDlzkaRaduA.WeightedAverage);
+                DlzkaRadAB.AddValue(z.LocDlzkaRaduAB.WeightedAverage);
+                DlzkaRadB.AddValue(z.LocDlzkaRaduB.WeightedAverage);
+                DlzkaRadVV.AddValue(z.LocDlzkaRaduVV.WeightedAverage);
 
                 ReplicationFinished?.Invoke(this);
             });

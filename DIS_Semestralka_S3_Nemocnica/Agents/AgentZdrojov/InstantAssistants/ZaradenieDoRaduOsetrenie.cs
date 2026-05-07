@@ -21,17 +21,20 @@ namespace Agents.AgentZdrojov.InstantAssistants
 			{
 				MyAgent.RadA.Enqueue(msg, (msg.Priorita, msg.PacientId));
 				MyAgent.RadAItems.Add((msg.PacientId, msg.Priorita));
-			}
+				MyAgent.LocDlzkaRaduA.AddWeightedValue(MyAgent.RadA.Count, MySim.CurrentTime);
+            }
 			else if (msg.Priorita <= 4)
 			{
-				MyAgent.RadB.Enqueue(msg, (msg.Priorita, msg.PacientId));
-				MyAgent.RadBItems.Add((msg.PacientId, msg.Priorita));
-			}
+				MyAgent.RadAB.Enqueue(msg, (msg.Priorita, msg.PacientId));
+				MyAgent.RadABItems.Add((msg.PacientId, msg.Priorita));
+				MyAgent.LocDlzkaRaduAB.AddWeightedValue(MyAgent.RadAB.Count, MySim.CurrentTime);
+            }
 			else
 			{
 				MyAgent.RadB.Enqueue(msg, (msg.Priorita, msg.PacientId));
 				MyAgent.RadBItems.Add((msg.PacientId, msg.Priorita));
-			}
+				MyAgent.LocDlzkaRaduB.AddWeightedValue(MyAgent.RadB.Count, MySim.CurrentTime);
+            }
 		}
 		public new AgentZdrojov MyAgent
 		{
