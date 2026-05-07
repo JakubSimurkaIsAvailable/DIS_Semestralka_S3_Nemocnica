@@ -50,6 +50,9 @@ namespace DIS_Semestralka_S3_Nemocnica
             Add("Sestry",           "Vyťaženie sestier",              "percent (%)", s => s.VytazenostSestry,      v => v * 100.0);
             Add("Miestnosti A",     "Vyťaženie miestností A",         "percent (%)", s => s.VytazenostMiestnostiA, v => v * 100.0);
             Add("Miestnosti B",     "Vyťaženie miestností B",         "percent (%)", s => s.VytazenostMiestnostiB, v => v * 100.0);
+            Add("Dĺžka radu A",     "Dĺžka radu A",                  "počet pacientov", s => s.DlzkaRadA,             v => v);
+            Add("Dĺžka radu A/B", "Dĺžka radu A/B",                "počet pacientov", s => s.DlzkaRadAB,            v => v);
+            Add("Dĺžka radu B",     "Dĺžka radu B",                 "počet pacientov", s => s.DlzkaRadB,             v => v);
 
             _onRepFinished = _ =>
             {
