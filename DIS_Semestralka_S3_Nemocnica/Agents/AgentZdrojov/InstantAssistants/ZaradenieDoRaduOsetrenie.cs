@@ -16,6 +16,7 @@ namespace Agents.AgentZdrojov.InstantAssistants
 		{
 			var msg = (MyMessage)message;
 			msg.CasVstupuDoRadu = MySim.CurrentTime;
+			MyAgent.CakajuciOsetrenieIds.Add(msg.PacientId);
 			if (msg.Priorita <= 2)
 			{
 				MyAgent.RadA.Enqueue(msg, (msg.Priorita, msg.PacientId));
@@ -23,8 +24,8 @@ namespace Agents.AgentZdrojov.InstantAssistants
 			}
 			else if (msg.Priorita <= 4)
 			{
-				MyAgent.RadAB.Enqueue(msg, (msg.Priorita, msg.PacientId));
-				MyAgent.RadABItems.Add((msg.PacientId, msg.Priorita));
+				MyAgent.RadB.Enqueue(msg, (msg.Priorita, msg.PacientId));
+				MyAgent.RadBItems.Add((msg.PacientId, msg.Priorita));
 			}
 			else
 			{

@@ -58,6 +58,14 @@ namespace Agents.AgentZdrojov
 			var msg = MyAgent.RadVV.Dequeue();
 			MyAgent.RadVVIds.Remove(msg.PacientId);
 
+			// Meriame čakanie v rade tu – nie po príchode sestry (správny bod)
+			double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
+			MyAgent.LocDobaVV.AddValue(wait);
+			if (msg.PrisielSanitkou)
+				MyAgent.LocDobaVVSanitka.AddValue(wait);
+			else
+				MyAgent.LocDobaVVPeso.AddValue(wait);
+
 			msg.PridelenaMiestnost = MyAgent.MiestnostiBVolne.Dequeue();
 			((PriradenieZdrojovPreVstupneVysetrenie)MyAgent.FindAssistant(SimId.PriradenieZdrojovPreVstupneVysetrenie)).Execute(msg);
 			ZaznamVytazenosti();
@@ -69,43 +77,42 @@ namespace Agents.AgentZdrojov
 
 		private void SkusSpustitOsetrenie()
 		{
-			if (MyAgent.LekariVolne.Count == 0 || MyAgent.SestryVolne.Count == 0) return;
-
-			// RadA (priorita 1-2): len miestnosť A
-			if (MyAgent.RadA.Count > 0 && MyAgent.MiestnostiAVolne.Count > 0)
+			// Serve one RadA patient (priority 1-2) from a type A room if possible
+			if (MyAgent.RadA.Count > 0 && MyAgent.MiestnostiAVolne.Count > 0
+				&& MyAgent.LekariVolne.Count > 0 && MyAgent.SestryVolne.Count > 0)
 			{
-				ServeOsetrenie(MyAgent.RadA, MyAgent.RadAItems, useA: true, bucket: 0);
-				return;
+				ServeOsetrenie(MyAgent.RadA, MyAgent.RadAItems, useA: true);
 			}
 
-			// RadAB (priorita 3-4): preferovane B, fallback A ak RadA prázdne
-			if (MyAgent.RadAB.Count > 0)
+			// Also independently serve one RadB patient (priority 3-5) if resources allow
+			if (MyAgent.RadB.Count > 0 && MyAgent.LekariVolne.Count > 0 && MyAgent.SestryVolne.Count > 0)
 			{
-				bool useA;
-				if      (MyAgent.MiestnostiBVolne.Count > 0)                                  useA = false;
-				else if (MyAgent.MiestnostiAVolne.Count > 0 && MyAgent.RadA.Count == 0) useA = true;
-				else    return;
-
-				ServeOsetrenie(MyAgent.RadAB, MyAgent.RadABItems, useA, bucket: 1);
-				return;
-			}
-
-			// RadB (priorita 5): len miestnosť B
-			if (MyAgent.RadB.Count > 0 && MyAgent.MiestnostiBVolne.Count > 0)
-			{
-				ServeOsetrenie(MyAgent.RadB, MyAgent.RadBItems, useA: false, bucket: 2);
+				bool bVolna = MyAgent.MiestnostiBVolne.Count > 0;
+				bool aVolna = MyAgent.MiestnostiAVolne.Count > 0;
+				if (bVolna) { ServeOsetrenie(MyAgent.RadB, MyAgent.RadBItems, useA: false); }
+				else if (aVolna && MyAgent.RadB.Peek().Priorita < 5) { ServeOsetrenie(MyAgent.RadB, MyAgent.RadBItems, useA: true); }
 			}
 		}
 
 		private void ServeOsetrenie(
 			PriorityQueue<MyMessage, (int, int)> rad,
 			List<(int Id, int Priorita)> items,
-			bool useA,
-			int bucket)
+			bool useA)
 		{
 			var msg = rad.Dequeue();
 			items.RemoveAll(x => x.Id == msg.PacientId);
-			msg.OsetrenieBucket = bucket;
+			msg.OsetrenieBucket = msg.Priorita <= 2 ? 0 : (msg.Priorita <= 4 ? 1 : 2);
+
+			// Meriame čakanie v rade tu – nie po presune personálu (správny bod)
+			double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
+			MyAgent.LocDobaOsetrenie.AddValue(wait);
+			(msg.OsetrenieBucket switch
+			{
+				0 => MyAgent.LocDobaOsetrenieA,
+				1 => MyAgent.LocDobaOsetrenieAB,
+				_ => MyAgent.LocDobaOsetrenieB
+			}).AddValue(wait);
+
 			msg.PridelenaMiestnost = useA
 				? (Miestnost)MyAgent.MiestnostiAVolne.Dequeue()
 				: MyAgent.MiestnostiBVolne.Dequeue();

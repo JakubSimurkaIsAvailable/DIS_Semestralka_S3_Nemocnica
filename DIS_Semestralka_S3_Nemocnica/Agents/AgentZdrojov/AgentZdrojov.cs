@@ -33,12 +33,11 @@ namespace Agents.AgentZdrojov
 
 		public PriorityQueue<MyMessage, (int, int)> RadVV { get; } = new();
 		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadA  { get; } = new();
-		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadAB { get; } = new();
 		public PriorityQueue<MyMessage, (int Priorita, int PacientId)> RadB  { get; } = new();
 		public List<int> RadVVIds { get; } = new();
 		public List<(int Id, int Priorita)> RadAItems  { get; } = new();
-		public List<(int Id, int Priorita)> RadABItems { get; } = new();
 		public List<(int Id, int Priorita)> RadBItems  { get; } = new();
+		public HashSet<int> CakajuciOsetrenieIds { get; } = new();
 
 		// ── Lokálne štatistiky (reset na začiatku každej replikácie) ──
 		public StatisticsCollector LocDobaVV             { get; private set; } = new();
@@ -121,12 +120,11 @@ namespace Agents.AgentZdrojov
 			base.PrepareReplication();
 			RadVV.Clear();
 			RadA.Clear();
-			RadAB.Clear();
 			RadB.Clear();
 			RadVVIds.Clear();
 			RadAItems.Clear();
-			RadABItems.Clear();
 			RadBItems.Clear();
+			CakajuciOsetrenieIds.Clear();
 		}
 
 		//meta! userInfo="Generated code: do not modify", tag="begin"

@@ -13,7 +13,7 @@ namespace Agents.AgentOkolia.ContinualAssistants
         public PrichodPacientaSanitka(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
-			_gamma = new GammaGenerator(((MySimulation)mySim).SeedRandom, 67.5, 4.37);
+			_gamma = new GammaGenerator(((MySimulation)mySim).SeedRandom, 4.37, 67.5);
 		}
 
 		override public void PrepareReplication()
@@ -69,7 +69,7 @@ namespace Agents.AgentOkolia.ContinualAssistants
 
 		private double VygenerujCas()
 		{
-			return 56 + _gamma.Generate();
+			return _gamma.Generate() + 56;
         }
     }
 }

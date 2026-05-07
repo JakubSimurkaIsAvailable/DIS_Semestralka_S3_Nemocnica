@@ -71,15 +71,6 @@ namespace Agents.AgentUrgentu
 
 			if (msg.JePresunNaOsetrenie)
 			{
-				double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
-				agZdrojov.LocDobaOsetrenie.AddValue(wait);
-				var bucketStat = msg.OsetrenieBucket switch
-				{
-					0 => agZdrojov.LocDobaOsetrenieA,
-					1 => agZdrojov.LocDobaOsetrenieAB,
-					_ => agZdrojov.LocDobaOsetrenieB
-				};
-				bucketStat.AddValue(wait);
 				if (Sim.Pacienti.TryGetValue(msg.PacientId, out var pacInfo))
 				{
 					double dobaPDO = MySim.CurrentTime - pacInfo.CasPrichodu;
@@ -95,12 +86,6 @@ namespace Agents.AgentUrgentu
 			}
 			else
 			{
-				double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
-				agZdrojov.LocDobaVV.AddValue(wait);
-				if (msg.PrisielSanitkou)
-					agZdrojov.LocDobaVVSanitka.AddValue(wait);
-				else
-					agZdrojov.LocDobaVVPeso.AddValue(wait);
 				Sim.AktualizujStavPacienta(msg.PacientId, "VV prebieha");
 				message.Code = Mc.VykonanieVstupnehoVysetrenia;
 				message.Addressee = MySim.FindAgent(SimId.AgentVstupnehoVysetrenia);

@@ -327,21 +327,13 @@ namespace DIS_Semestralka_S3_Nemocnica
             lbRadA.EndUpdate();
             lblRadACount.Text = $"Rad A – priorita 1-2 ({aItems.Count})";
 
-            var abItems = z.RadABItems.ToList();
-            lbRadAB.BeginUpdate();
-            lbRadAB.Items.Clear();
-            foreach (var (id, prio) in abItems)
-                lbRadAB.Items.Add($"Pacient #{id}  [P{prio}]");
-            lbRadAB.EndUpdate();
-            lblRadABCount.Text = $"Rad A/B – priorita 3-4 ({abItems.Count})";
-
             var bItems = z.RadBItems.ToList();
             lbRadB.BeginUpdate();
             lbRadB.Items.Clear();
             foreach (var (id, prio) in bItems)
                 lbRadB.Items.Add($"Pacient #{id}  [P{prio}]");
             lbRadB.EndUpdate();
-            lblRadBCount.Text = $"Rad B – priorita 5 ({bItems.Count})";
+            lblRadBCount.Text = $"Rad B – priorita 3-5 ({bItems.Count})";
         }
 
         // ── Statistics tab ────────────────────────────────────────────
