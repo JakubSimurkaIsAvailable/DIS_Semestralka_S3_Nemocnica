@@ -12,7 +12,7 @@ namespace Agents.AgentOkolia.ContinualAssistants
 		public PrichodPacienta(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
-			_exp = new ExponencialnyGenerator(((MySimulation)mySim).SeedRandom, 1.0 / 575);
+			_exp = new ExponencialnyGenerator(((MySimulation)mySim).SeedRandom, 1.0 / 574.2);
 		}
 
 		override public void PrepareReplication()
