@@ -2,6 +2,7 @@ using OSPABA;
 using Simulation;
 using Agents.AgentOkolia.ContinualAssistants;
 using DIS_Semestralka_S3_Nemocnica.Collectors;
+using DIS_Semestralka_S3_Nemocnica.Generators;
 
 namespace Agents.AgentOkolia
 {
@@ -13,6 +14,12 @@ namespace Agents.AgentOkolia
 		{
 			Init();
 		}
+
+		private ExponencialnyGenerator _genPrichodPeso;
+		private GammaGenerator _genPrichodSanitka;
+
+		public double GenerujCasPrichoduPeso() => _genPrichodPeso.Generate();
+		public double GenerujCasPrichoduSanitka() => _genPrichodSanitka.Generate() + 56;
 
 		public int PocetPacientov { get; set; }
 
@@ -42,8 +49,11 @@ namespace Agents.AgentOkolia
 		//meta! userInfo="Generated code: do not modify", tag="begin"
 		private void Init()
 		{
+			var seed = ((MySimulation)MySim).SeedRandom;
 			new ManagerOkolia(SimId.ManagerOkolia, MySim, this);
+			_genPrichodSanitka = new GammaGenerator(seed, 4.37, 67.5);
 			new PrichodPacientaSanitka(SimId.PrichodPacientaSanitka, MySim, this);
+			_genPrichodPeso = new ExponencialnyGenerator(seed, 1.0 / 574.2);
 			new PrichodPacienta(SimId.PrichodPacienta, MySim, this);
 			AddOwnMessage(Mc.OdchodPacienta);
 		}

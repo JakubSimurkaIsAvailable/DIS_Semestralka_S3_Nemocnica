@@ -26,7 +26,8 @@ namespace Simulation
 		public const int ProcessOsetrenie = 1005;
 		public const int ProcessPresunutiaPacienta = 1014;
 		public const int ProcessPresunitiaPersonalu = 1015;
-		public const int PrichodPacienta = 1009;
+        public const int WarmupEnd = 1021;
+        public const int PrichodPacienta = 1009;
 		public const int PrichodPacientaSanitka = 1010;
 		public const int UvolnenieZdrojov = 1018;
 		public const int PriradenieZdrojovPreVstupneVysetrenie = 1011;

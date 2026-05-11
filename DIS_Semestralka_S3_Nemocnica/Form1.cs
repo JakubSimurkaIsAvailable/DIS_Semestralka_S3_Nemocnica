@@ -4,6 +4,7 @@ using OSPAnimator;
 using Simulation;
 using System.Data;
 using System.Globalization;
+using System.Linq;
 using System.IO;
 using System.Text;
 using System.Windows.Forms.Integration;
@@ -27,6 +28,7 @@ namespace DIS_Semestralka_S3_Nemocnica
         private string? _csvPath;
         private StreamWriter? _finalCsvWriter;
         private string? _finalCsvPath;
+        private KonfigForm _konfigForm = new();
 
         public Form1()
         {
@@ -69,6 +71,13 @@ namespace DIS_Semestralka_S3_Nemocnica
             _sim.KonfMiestnostiA  = (int)nudMiestnostiA.Value;
             _sim.KonfMiestnostiB  = (int)nudMiestnostiB.Value;
             _sim.KonfZahrievanie  = (double)nudZahrievanie.Value * 3600.0;
+            _sim.PreferVV           = _konfigForm.PreferVV;
+            _sim.RezervaLekarPreA   = _konfigForm.RezervaLekarPreA;
+            _sim.RezervaSestraPreVV = _konfigForm.RezervaSestraPreVV;
+            _sim.MinPohybPersonalu  = _konfigForm.MinPohybPersonalu;
+            _sim.RadABPreferA       = _konfigForm.RadABPreferA;
+            _sim.PrefRadBEnabled    = _konfigForm.PrefRadBEnabled;
+            _sim.PrefRadBPrah       = _konfigForm.PrefRadBPrah;
 
             // Animator runs only when not in max-speed mode (Dispatcher.Invoke per patient is too slow)
             if (!_maxSpeed)
@@ -107,7 +116,6 @@ namespace DIS_Semestralka_S3_Nemocnica
                 AktualizujStatus();
                 if (_maxSpeed) AktualizujStatistikyTab();
             });
-
             _replikacieForm?.AttachSim(_sim);
             _vysledkyForm?.AttachSim(_sim);
 
@@ -161,14 +169,10 @@ namespace DIS_Semestralka_S3_Nemocnica
             nudSeed.Enabled = !cbNahodny.Checked;
         }
 
-        private void CbCsvLog_CheckedChanged(object sender, EventArgs e)
+        private void BtnKonfig_Click(object sender, EventArgs e)
         {
-            UpdateCsvLogging();
-        }
-
-        private void CbCsvFinal_CheckedChanged(object sender, EventArgs e)
-        {
-            UpdateFinalCsvLogging();
+            _konfigForm.Show(this);
+            _konfigForm.BringToFront();
         }
 
         private void SliderChanged(object? sender, EventArgs e)
@@ -189,7 +193,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             _sim.MaxSpeed = _maxSpeed;
             if (_maxSpeed)
             {
-                _sim.GuiInterval = 1;
+                _sim.GuiInterval = trkInterval.Value;
                 _sim.GuiDurationMs = 0;
                 _sim.SetMaxSimSpeed();
                 UpdateFinalCsvLogging();
@@ -269,7 +273,7 @@ namespace DIS_Semestralka_S3_Nemocnica
 
         private void UpdateCsvLogging()
         {
-            if (_sim == null || _maxSpeed || !cbCsvLog.Checked)
+            if (_sim == null || _maxSpeed || !_konfigForm.CsvLogEnabled)
             {
                 StopCsvLogging();
                 return;
@@ -298,9 +302,10 @@ namespace DIS_Semestralka_S3_Nemocnica
             _csvPath = null;
         }
 
+
         private void UpdateFinalCsvLogging()
         {
-            if (_sim == null || !_maxSpeed || !cbCsvFinal.Checked)
+            if (_sim == null || !_maxSpeed || !_konfigForm.CsvFinalEnabled)
             {
                 StopFinalCsvLogging();
                 return;
@@ -310,16 +315,38 @@ namespace DIS_Semestralka_S3_Nemocnica
 
             string dir = Path.Combine(AppContext.BaseDirectory, "csv");
             Directory.CreateDirectory(dir);
-            _finalCsvPath = Path.Combine(dir, $"vysledky_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
-            _finalCsvWriter = new StreamWriter(_finalCsvPath, false, new UTF8Encoding(false)) { AutoFlush = true };
-            _finalCsvWriter.WriteLine(
-                "ReplicationCount,Pacienti,PacientiPeso,PacientiSanitka," +
-                "DobaVSystemeSec,DobaVSystemePesoSec,DobaVSystemeSanitkaSec," +
-                "DobaVVSec,DobaVVPesoSec,DobaVVSanitkaSec," +
-                "DobaOsetrenieSec,DobaOsetrenieASec,DobaOsetrenieABSec,DobaOsetrenieBSec," +
-                "DobaPrichodDoOsetreniaSec,DobaPrichodDoOsetreniaPesoSec,DobaPrichodDoOsetreniaSanitkaSec," +
-                "VytazenostLekari,VytazenostSestry,VytazenostMiestnostiA,VytazenostMiestnostiB," +
-                "DlzkaRadVV,DlzkaRadA,DlzkaRadAB,DlzkaRadB");
+
+            string? appendPath = _konfigForm.AppendFinalCsvPath;
+            bool append = appendPath != null && File.Exists(appendPath);
+            _finalCsvPath = append
+                ? appendPath!
+                : Path.Combine(dir, $"vysledky_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
+
+            _finalCsvWriter = new StreamWriter(_finalCsvPath, append: append, new UTF8Encoding(false)) { AutoFlush = true };
+
+            if (!append)
+                _finalCsvWriter.WriteLine(
+                    "ReplicationCount,Pacienti,PacientiPeso,PacientiSanitka," +
+                    "DobaVSystemeSec,DobaVSystemePesoSec,DobaVSystemeSanitkaSec," +
+                    "DobaVVSec,DobaVVPesoSec,DobaVVSanitkaSec," +
+                    "DobaOsetrenieSec,DobaOsetrenieASec,DobaOsetrenieABSec,DobaOsetrenieBSec," +
+                    "DobaPrichodDoOsetreniaSec,DobaPrichodDoOsetreniaPesoSec,DobaPrichodDoOsetreniaSanitkaSec," +
+                    "VytazenostLekari,VytazenostSestry,VytazenostMiestnostiA,VytazenostMiestnostiB," +
+                    "DlzkaRadVV,DlzkaRadA,DlzkaRadAB,DlzkaRadB," +
+                    "CI_Low_Pacienti,CI_Low_PacientiPeso,CI_Low_PacientiSanitka," +
+                    "CI_Low_DobaVSystemeSec,CI_Low_DobaVSystemePesoSec,CI_Low_DobaVSystemeSanitkaSec," +
+                    "CI_Low_DobaVVSec,CI_Low_DobaVVPesoSec,CI_Low_DobaVVSanitkaSec," +
+                    "CI_Low_DobaOsetrenieSec,CI_Low_DobaOsetrenieASec,CI_Low_DobaOsetrenieABSec,CI_Low_DobaOsetrenieBSec," +
+                    "CI_Low_DobaPrichodDoOsetreniaSec,CI_Low_DobaPrichodDoOsetreniaPesoSec,CI_Low_DobaPrichodDoOsetreniaSanitkaSec," +
+                    "CI_Low_VytazenostLekari,CI_Low_VytazenostSestry,CI_Low_VytazenostMiestnostiA,CI_Low_VytazenostMiestnostiB," +
+                    "CI_Low_DlzkaRadVV,CI_Low_DlzkaRadA,CI_Low_DlzkaRadAB,CI_Low_DlzkaRadB," +
+                    "CI_High_Pacienti,CI_High_PacientiPeso,CI_High_PacientiSanitka," +
+                    "CI_High_DobaVSystemeSec,CI_High_DobaVSystemePesoSec,CI_High_DobaVSystemeSanitkaSec," +
+                    "CI_High_DobaVVSec,CI_High_DobaVVPesoSec,CI_High_DobaVVSanitkaSec," +
+                    "CI_High_DobaOsetrenieSec,CI_High_DobaOsetrenieASec,CI_High_DobaOsetrenieABSec,CI_High_DobaOsetrenieBSec," +
+                    "CI_High_DobaPrichodDoOsetreniaSec,CI_High_DobaPrichodDoOsetreniaPesoSec,CI_High_DobaPrichodDoOsetreniaSanitkaSec," +
+                    "CI_High_VytazenostLekari,CI_High_VytazenostSestry,CI_High_VytazenostMiestnostiA,CI_High_VytazenostMiestnostiB," +
+                    "CI_High_DlzkaRadVV,CI_High_DlzkaRadA,CI_High_DlzkaRadAB,CI_High_DlzkaRadB");
         }
 
         private void StopFinalCsvLogging()
@@ -331,43 +358,34 @@ namespace DIS_Semestralka_S3_Nemocnica
 
         private void WriteFinalCsvSummary()
         {
-            if (_finalCsvWriter == null || _sim == null || !_maxSpeed || !cbCsvFinal.Checked) return;
+            if (_finalCsvWriter == null || _sim == null || !_maxSpeed || !_konfigForm.CsvFinalEnabled) return;
             var s = _sim;
-            var ci = CultureInfo.InvariantCulture;
+            var fmt = CultureInfo.InvariantCulture;
 
             static string F(StatisticsCollector c, IFormatProvider p)
                 => c.ValueCounter > 0 ? c.Average.ToString("G", p) : "";
+            static string FCI(double? v, IFormatProvider p)
+                => v.HasValue ? v.Value.ToString("G", p) : "";
 
-            string[] values =
+            StatisticsCollector[] collectors =
             {
-                s.ReplicationCount.ToString(ci),
-                F(s.PocetPacienti, ci),
-                F(s.PocetPeso, ci),
-                F(s.PocetSanitka, ci),
-                F(s.DobaVSysteme, ci),
-                F(s.DobaVSystemePeso, ci),
-                F(s.DobaVSystemeSanitka, ci),
-                F(s.DobaVV, ci),
-                F(s.DobaVVPeso, ci),
-                F(s.DobaVVSanitka, ci),
-                F(s.DobaOsetrenie, ci),
-                F(s.DobaOsetrenieA, ci),
-                F(s.DobaOsetrenieAB, ci),
-                F(s.DobaOsetrenieB, ci),
-                F(s.DobaPrichodDoOsetrenia, ci),
-                F(s.DobaPrichodDoOsetreniaPeso, ci),
-                F(s.DobaPrichodDoOsetreniaSanitka, ci),
-                F(s.VytazenostLekari, ci),
-                F(s.VytazenostSestry, ci),
-                F(s.VytazenostMiestnostiA, ci),
-                F(s.VytazenostMiestnostiB, ci),
-                F(s.DlzkaRadVV, ci),
-                F(s.DlzkaRadA, ci),
-                F(s.DlzkaRadAB, ci),
-                F(s.DlzkaRadB, ci),
+                s.PocetPacienti, s.PocetPeso, s.PocetSanitka,
+                s.DobaVSysteme, s.DobaVSystemePeso, s.DobaVSystemeSanitka,
+                s.DobaVV, s.DobaVVPeso, s.DobaVVSanitka,
+                s.DobaOsetrenie, s.DobaOsetrenieA, s.DobaOsetrenieAB, s.DobaOsetrenieB,
+                s.DobaPrichodDoOsetrenia, s.DobaPrichodDoOsetreniaPeso, s.DobaPrichodDoOsetreniaSanitka,
+                s.VytazenostLekari, s.VytazenostSestry, s.VytazenostMiestnostiA, s.VytazenostMiestnostiB,
+                s.DlzkaRadVV, s.DlzkaRadA, s.DlzkaRadAB, s.DlzkaRadB,
             };
 
-            _finalCsvWriter.WriteLine(string.Join(",", values));
+            var intervals = collectors.Select(c => c.GetConfidenceInterval()).ToArray();
+
+            var parts = new List<string> { s.ReplicationCount.ToString(fmt) };
+            foreach (var c  in collectors) parts.Add(F(c, fmt));
+            foreach (var iv in intervals)  parts.Add(FCI(iv?.Lower, fmt));
+            foreach (var iv in intervals)  parts.Add(FCI(iv?.Upper, fmt));
+
+            _finalCsvWriter.WriteLine(string.Join(",", parts));
         }
 
         private void WriteCsvSnapshot(MySimulation s)
@@ -379,7 +397,7 @@ namespace DIS_Semestralka_S3_Nemocnica
 
             static double? Avg(StatisticsCollector c) => c.ValueCounter > 0 ? c.Average : null;
             static double? WAvg(WeightedStatisticsCollector c) => c.TotalWeight > 0 ? c.WeightedAverage : null;
-            static string F(double? v, IFormatProvider p) => v.HasValue ? v.Value.ToString("G", p) : "";
+            static string F(double? v, IFormatProvider p) => v.HasValue ? v.Value.ToString("G", p) : "0";
 
             string[] values =
             {
@@ -551,7 +569,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             ("Rad VV – vstupné vyšetrenie",  false),
             ("Rad A – priorita 1-2",         false),
             ("Rad A/B – priorita 3-4",       false),
-            ("Rad B – priorita 3-5",         false),
+            ("Rad B – priorita 5",         false),
         };
 
         private void InitStatGrid()
@@ -583,8 +601,9 @@ namespace DIS_Semestralka_S3_Nemocnica
             var z = s.AgentZdrojov;
 
             static string Cas(double sec) =>
-                sec <= 0 ? "—" : TimeSpan.FromSeconds(sec).ToString(@"hh\:mm\:ss");
+                sec < 0 ? "—" : TimeSpan.FromSeconds(sec).ToString(@"hh\:mm\:ss");
             static string Pct(double v) => $"{v * 100:F1} %";
+            static string Pocet(double v) => $"{v:F2}";
 
             // Stĺpec „Replikácia" — živé hodnoty z lokálnych kolektorov agentov.
             // V spomalenom móde sa aktualizujú priebežne, v rýchlom po každej replikácii.
@@ -594,6 +613,8 @@ namespace DIS_Semestralka_S3_Nemocnica
                 => val > 0 ? $"{val}" : "—";
             static string LivePct(WeightedStatisticsCollector loc)
                 => loc.TotalWeight > 0 ? Pct(loc.WeightedAverage) : "—";
+            static string LivePocet(WeightedStatisticsCollector loc)
+                => loc.TotalWeight > 0 ? Pocet(loc.WeightedAverage) : "—";
 
             static string AggStat(StatisticsCollector c)
             {
@@ -618,6 +639,14 @@ namespace DIS_Semestralka_S3_Nemocnica
                 string avg = Pct(c.Average);
                 if (ci == null) return $"{avg}  (n<30)";
                 return $"{avg}  [{Pct(ci.Value.Lower)}, {Pct(ci.Value.Upper)}]";
+            }
+            static string AggPocet(StatisticsCollector c)
+            {
+                if (c.ValueCounter == 0) return "—";
+                var ci = c.GetConfidenceInterval();
+                string avg = Pocet(c.Average);
+                if (ci == null) return $"{avg}  (n<30)";
+                return $"{avg}  [{Pocet(ci.Value.Lower)}, {Pocet(ci.Value.Upper)}]";
             }
 
             void Set(int row, string cur, string agg)
@@ -659,10 +688,10 @@ namespace DIS_Semestralka_S3_Nemocnica
             Set(25, LivePct(z.LocVytazenostMiestnostiB), AggPct(s.VytazenostMiestnostiB));
 
             // Dĺžky radov (rows 27-30)
-            Set(27, LivePct(z.LocDlzkaRaduVV),  AggPct(s.DlzkaRadVV));
-            Set(28, LivePct(z.LocDlzkaRaduA),   AggPct(s.DlzkaRadA));
-            Set(29, LivePct(z.LocDlzkaRaduAB),  AggPct(s.DlzkaRadAB));
-            Set(30, LivePct(z.LocDlzkaRaduB),   AggPct(s.DlzkaRadB));
+            Set(27, LivePocet(z.LocDlzkaRaduVV),  AggPocet(s.DlzkaRadVV));
+            Set(28, LivePocet(z.LocDlzkaRaduA),   AggPocet(s.DlzkaRadA));
+            Set(29, LivePocet(z.LocDlzkaRaduAB),  AggPocet(s.DlzkaRadAB));
+            Set(30, LivePocet(z.LocDlzkaRaduB),   AggPocet(s.DlzkaRadB));
         }
 
         private void BtnReplikacie_Click(object sender, EventArgs e)

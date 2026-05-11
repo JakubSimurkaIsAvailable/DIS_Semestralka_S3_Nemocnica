@@ -31,32 +31,39 @@ namespace Simulation
         public int KonfMiestnostiB { get; set; } = 7;
         public double KonfZahrievanie { get; set; } = 0;
         public bool WarmupSkoncilo { get; set; } = false;
+        public bool PreferVV { get; set; } = false;
+        public bool RezervaLekarPreA { get; set; } = false;
+        public bool RezervaSestraPreVV { get; set; } = false;
+        public bool MinPohybPersonalu { get; set; } = false;
+        public bool RadABPreferA { get; set; } = false;
+        public bool PrefRadBEnabled { get; set; } = false;
+        public int  PrefRadBPrah    { get; set; } = 5;
 
         // ── Aggregate stats (across replications) ─────────────────────
-        public StatisticsCollector PocetPacienti  { get; } = new(true);
-        public StatisticsCollector PocetPeso      { get; } = new(true);
-        public StatisticsCollector PocetSanitka   { get; } = new(true);
-        public StatisticsCollector DobaVV              { get; } = new(true);
-        public StatisticsCollector DobaOsetrenie       { get; } = new(true);
-        public StatisticsCollector DobaVSysteme        { get; } = new(true);
-        public StatisticsCollector DobaVSystemePeso    { get; } = new(true);
-        public StatisticsCollector DobaVSystemeSanitka { get; } = new(true);
-        public StatisticsCollector DobaVVPeso          { get; } = new(true);
-        public StatisticsCollector DobaVVSanitka       { get; } = new(true);
-        public StatisticsCollector DobaOsetrenieA      { get; } = new(true);
-        public StatisticsCollector DobaOsetrenieAB     { get; } = new(true);
-        public StatisticsCollector DobaOsetrenieB      { get; } = new(true);
-        public StatisticsCollector DobaPrichodDoOsetrenia       { get; } = new(true);
-        public StatisticsCollector DobaPrichodDoOsetreniaPeso    { get; } = new(true);
-        public StatisticsCollector DobaPrichodDoOsetreniaSanitka { get; } = new(true);
-        public StatisticsCollector VytazenostLekari       { get; } = new(true);
-        public StatisticsCollector VytazenostSestry       { get; } = new(true);
-        public StatisticsCollector VytazenostMiestnostiA  { get; } = new(true);
-        public StatisticsCollector VytazenostMiestnostiB  { get; } = new(true);
-        public StatisticsCollector DlzkaRadA              { get; } = new(true);
-        public  StatisticsCollector DlzkaRadAB            { get; } = new(true);
-        public StatisticsCollector DlzkaRadB              { get; } = new(true);
-        public StatisticsCollector DlzkaRadVV             { get; } = new(true);
+        public StatisticsCollector PocetPacienti  { get; } = new();
+        public StatisticsCollector PocetPeso      { get; } = new();
+        public StatisticsCollector PocetSanitka   { get; } = new();
+        public StatisticsCollector DobaVV              { get; } = new();
+        public StatisticsCollector DobaOsetrenie       { get; } = new();
+        public StatisticsCollector DobaVSysteme        { get; } = new();
+        public StatisticsCollector DobaVSystemePeso    { get; } = new();
+        public StatisticsCollector DobaVSystemeSanitka { get; } = new();
+        public StatisticsCollector DobaVVPeso          { get; } = new();
+        public StatisticsCollector DobaVVSanitka       { get; } = new();
+        public StatisticsCollector DobaOsetrenieA      { get; } = new();
+        public StatisticsCollector DobaOsetrenieAB     { get; } = new();
+        public StatisticsCollector DobaOsetrenieB      { get; } = new();
+        public StatisticsCollector DobaPrichodDoOsetrenia       { get; } = new();
+        public StatisticsCollector DobaPrichodDoOsetreniaPeso    { get; } = new();
+        public StatisticsCollector DobaPrichodDoOsetreniaSanitka { get; } = new();
+        public StatisticsCollector VytazenostLekari       { get; } = new();
+        public StatisticsCollector VytazenostSestry       { get; } = new();
+        public StatisticsCollector VytazenostMiestnostiA  { get; } = new();
+        public StatisticsCollector VytazenostMiestnostiB  { get; } = new();
+        public StatisticsCollector DlzkaRadA              { get; } = new();
+        public StatisticsCollector DlzkaRadAB             { get; } = new();
+        public StatisticsCollector DlzkaRadB              { get; } = new();
+        public StatisticsCollector DlzkaRadVV             { get; } = new();
 
         // ── Animation state (sim thread only) ─────────────────────────
         private readonly Dictionary<int, AnimShapeItem> _animPacienti = new();
@@ -188,6 +195,7 @@ namespace Simulation
         {
             AgentOkolia.ResetLocalStats();
             AgentZdrojov.ResetLocalStatsAtWarmupEnd(CurrentTime);
+            PocetVybavenych = 0;
             WarmupSkoncilo = true;
         }
 
@@ -435,6 +443,7 @@ namespace Simulation
         {
             if (_animPacientMiestnost.TryGetValue(pacientId, out var room))
             {
+                _pacientRoom[pacientId] = (room.IsA, room.Slot);
                 _animPacientMiestnost.Remove(pacientId);
                 if (_animPacienti.TryGetValue(pacientId, out var item))
                 {

@@ -1,5 +1,3 @@
-using DIS_Semestralka_S3_Nemocnica.Generators;
-using DIS_Semestralka_S3_Nemocnica.Generators.Components;
 using OSPABA;
 using Simulation;
 using Agents.AgentOsetrenia;
@@ -9,18 +7,9 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
 	//meta! id="40"
 	public class ProcessOsetrenie : OSPABA.Process
 	{
-		// TODO: doplnit spravne rozdelenia podla priority pacienta
-		private SpojityEmpirickyGenerator _samRNG;
-		private RozdelenieSpojite _sanitkaRNG;
 		public ProcessOsetrenie(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
-			var seed = ((MySimulation)mySim).SeedRandom;
-			_samRNG = new SpojityEmpirickyGenerator(seed,
-				new List<double> { 10, 12, 14 },
-				new List<double> { 12, 14, 18 },
-				new List<double> { 0.1, 0.6, 0.3 });
-			_sanitkaRNG = new RozdelenieSpojite(seed, 15, 30);
 		}
 
 		override public void PrepareReplication()
@@ -32,7 +21,7 @@ namespace Agents.AgentOsetrenia.ContinualAssistants
         public void ProcessStart(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			double cas = msg.PrisielSanitkou ? _sanitkaRNG.Generate() * 60 : _samRNG.Generate() * 60;
+			double cas = MyAgent.GenerujTrvanieOsetrenia(msg.PrisielSanitkou);
 			message.Code = Mc.OsetrenieSkoncilo;
 			Hold(cas, message);
 		}

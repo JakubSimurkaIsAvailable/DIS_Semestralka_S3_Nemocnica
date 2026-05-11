@@ -1,13 +1,13 @@
 using OSPABA;
+using Agents.AgentModelu;
 using Simulation;
-using Agents.AgentVstupnehoVysetrenia;
 
-namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
+namespace Agents.AgentModelu.ContinualAssistants
 {
-	//meta! id="38"
-	public class ProcessVstupneVysetrenie : OSPABA.Process
+	//meta! id="139"
+	public class WarmupEnd : OSPABA.Scheduler
 	{
-        public ProcessVstupneVysetrenie(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
+		public WarmupEnd(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
 		}
@@ -15,15 +15,12 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
+			// Setup component for the next replication
 		}
 
-		//meta! sender="AgentVstupnehoVysetrenia", id="39", type="Start"
+		//meta! sender="AgentModelu", id="140", type="Start"
 		public void ProcessStart(MessageForm message)
 		{
-			var msg = (MyMessage)message;
-			double trvanie = MyAgent.GenerujTrvanieVV(msg.PrisielSanitkou);
-			message.Code = Mc.VstupneVysetrenieSkoncilo;
-			Hold(trvanie, message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"
@@ -43,21 +40,17 @@ namespace Agents.AgentVstupnehoVysetrenia.ContinualAssistants
 				ProcessStart(message);
 			break;
 
-			case Mc.VstupneVysetrenieSkoncilo:
-				AssistantFinished(message);
-			break;
-
 			default:
 				ProcessDefault(message);
 			break;
 			}
 		}
 		//meta! tag="end"
-		public new AgentVstupnehoVysetrenia MyAgent
+		public new AgentModelu MyAgent
 		{
 			get
 			{
-				return (AgentVstupnehoVysetrenia)base.MyAgent;
+				return (AgentModelu)base.MyAgent;
 			}
 		}
 	}

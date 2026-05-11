@@ -1,5 +1,3 @@
-using DIS_Semestralka_S3_Nemocnica.Generators;
-using DIS_Semestralka_S3_Nemocnica.Generators.Components;
 using OSPABA;
 using Agents.AgentPresunov;
 using Simulation;
@@ -9,17 +7,9 @@ namespace Agents.AgentPresunov.ContinualAssistants
 	//meta! id="73"
 	public class ProcessPresunutiaPacienta : OSPABA.Process
 	{
-		private TrojuholnikovyGenerator _prichodSamostatne;
-		private RozdelenieSpojite _prichodSanitka;
-		private RozdelenieSpojite _odchod;
-
         public ProcessPresunutiaPacienta(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
-			var seed = ((MySimulation)mySim).SeedRandom;
-			_prichodSamostatne = new TrojuholnikovyGenerator(seed, 120, 150, 300);
-			_prichodSanitka = new RozdelenieSpojite(seed, 90, 200);
-			_odchod = new RozdelenieSpojite(seed, 150, 240);
 		}
 
 		override public void PrepareReplication()
@@ -31,9 +21,9 @@ namespace Agents.AgentPresunov.ContinualAssistants
 		public void ProcessStart(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			double cas = msg.JeOdchod ? _odchod.Generate()
-				: msg.PrisielSanitkou ? _prichodSanitka.Generate()
-				: _prichodSamostatne.Generate();
+			double cas = msg.JeOdchod ? MyAgent.GenerujCasOdchoduPacienta()
+				: msg.PrisielSanitkou ? MyAgent.GenerujCasPrichoduPacientaSanitka()
+				: MyAgent.GenerujCasPrichoduPacientaSamostatne();
 			var sim = (MySimulation)MySim;
 			if (msg.JeOdchod)
 				sim.AnimPacientPohyb(msg.PacientId, cas, SimAnim.PesiVstup.X, SimAnim.PesiVstup.Y);

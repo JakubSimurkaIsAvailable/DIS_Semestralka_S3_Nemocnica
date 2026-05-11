@@ -1,5 +1,4 @@
 using Agents.AgentOkolia;
-using DIS_Semestralka_S3_Nemocnica.Generators;
 using OSPABA;
 using Simulation;
 
@@ -8,12 +7,9 @@ namespace Agents.AgentOkolia.ContinualAssistants
 	//meta! id="56"
 	public class PrichodPacientaSanitka : OSPABA.Scheduler
 	{
-		private GammaGenerator _gamma;
-
         public PrichodPacientaSanitka(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
-			_gamma = new GammaGenerator(((MySimulation)mySim).SeedRandom, 4.37, 67.5);
 		}
 
 		override public void PrepareReplication()
@@ -67,9 +63,6 @@ namespace Agents.AgentOkolia.ContinualAssistants
 			}
 		}
 
-		private double VygenerujCas()
-		{
-			return _gamma.Generate() + 56;
-        }
+		private double VygenerujCas() => MyAgent.GenerujCasPrichoduSanitka();
     }
 }

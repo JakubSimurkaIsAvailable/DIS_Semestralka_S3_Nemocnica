@@ -1,3 +1,4 @@
+using Agents.AgentModelu.ContinualAssistants;
 using OSPABA;
 using Simulation;
 
@@ -21,10 +22,11 @@ namespace Agents.AgentModelu
 		//meta! userInfo="Generated code: do not modify", tag="begin"
 		private void Init()
 		{
-			new ManagerModelu(SimId.ManagerModelu, MySim, this);
-			AddOwnMessage(Mc.VysetreniePacienta);
-			AddOwnMessage(Mc.PrichodPacienta);
-		}
+            new ManagerModelu(SimId.ManagerModelu, MySim, this);
+            new WarmupEnd(SimId.WarmupEnd, MySim, this);
+            AddOwnMessage(Mc.VysetreniePacienta);
+            AddOwnMessage(Mc.PrichodPacienta);
+        }
 		//meta! tag="end"
 	}
 }

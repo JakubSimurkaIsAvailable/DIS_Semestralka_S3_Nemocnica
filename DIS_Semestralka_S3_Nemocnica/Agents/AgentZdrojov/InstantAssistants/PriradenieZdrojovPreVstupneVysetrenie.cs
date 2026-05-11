@@ -15,8 +15,12 @@ namespace Agents.AgentZdrojov.InstantAssistants
 		override public void Execute(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			// PridelenaMiestnost (MiestnostB) already set by ManagerZdrojov before calling Execute
-			msg.PriradenaSestrа = MyAgent.SestryVolne.Dequeue();
+			// PridelenaMiestnost set by ManagerZdrojov; PriradenaSestrа may be pre-assigned (MinPohybPersonalu)
+			if (msg.PriradenaSestrа == null)
+			{
+				msg.PriradenaSestrа = MyAgent.SestryVolne[0];
+				MyAgent.SestryVolne.RemoveAt(0);
+			}
 		}
 		public new AgentZdrojov MyAgent
 		{

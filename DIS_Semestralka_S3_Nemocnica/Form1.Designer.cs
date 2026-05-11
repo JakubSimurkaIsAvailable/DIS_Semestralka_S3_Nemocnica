@@ -29,7 +29,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             btnMaxSpeed = new System.Windows.Forms.Button();
             btnReplikacie = new System.Windows.Forms.Button();
             btnVysledky = new System.Windows.Forms.Button();
-            cbCsvFinal = new System.Windows.Forms.CheckBox();
+            btnKonfig = new System.Windows.Forms.Button();
             pnlKonfZdrojov = new System.Windows.Forms.FlowLayoutPanel();
             lblSestryKonfLabel = new System.Windows.Forms.Label();
             nudSestry = new System.Windows.Forms.NumericUpDown();
@@ -46,7 +46,6 @@ namespace DIS_Semestralka_S3_Nemocnica
             lblIntervalLabel = new System.Windows.Forms.Label();
             trkInterval = new System.Windows.Forms.TrackBar();
             lblIntervalVal = new System.Windows.Forms.Label();
-            cbCsvLog = new System.Windows.Forms.CheckBox();
             pnlStatus = new System.Windows.Forms.Panel();
             lblSimCas = new System.Windows.Forms.Label();
             lblReplikacia = new System.Windows.Forms.Label();
@@ -138,7 +137,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             pnlTop.Controls.Add(btnMaxSpeed);
             pnlTop.Controls.Add(btnReplikacie);
             pnlTop.Controls.Add(btnVysledky);
-            pnlTop.Controls.Add(cbCsvFinal);
+            pnlTop.Controls.Add(btnKonfig);
             pnlTop.BackColor = System.Drawing.SystemColors.ControlLight;
             pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
             pnlTop.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
@@ -250,11 +249,13 @@ namespace DIS_Semestralka_S3_Nemocnica
             btnVysledky.UseVisualStyleBackColor = false;
             btnVysledky.Click += BtnVysledky_Click;
 
-            // cbCsvFinal
-            cbCsvFinal.AutoSize = true;
-            cbCsvFinal.Margin = new System.Windows.Forms.Padding(12, 6, 0, 0);
-            cbCsvFinal.Text = "CSV (max speed)";
-            cbCsvFinal.CheckedChanged += CbCsvFinal_CheckedChanged;
+            // btnKonfig
+            btnKonfig.BackColor = System.Drawing.Color.LightSteelBlue;
+            btnKonfig.Margin = new System.Windows.Forms.Padding(12, 4, 0, 0);
+            btnKonfig.Size = new System.Drawing.Size(120, 28);
+            btnKonfig.Text = "⚙ Konfigurácia";
+            btnKonfig.UseVisualStyleBackColor = false;
+            btnKonfig.Click += BtnKonfig_Click;
 
             // pnlKonfZdrojov
             pnlKonfZdrojov.Controls.Add(lblSestryKonfLabel);
@@ -327,7 +328,6 @@ namespace DIS_Semestralka_S3_Nemocnica
             pnlSpeed.Controls.Add(lblIntervalLabel);
             pnlSpeed.Controls.Add(trkInterval);
             pnlSpeed.Controls.Add(lblIntervalVal);
-            pnlSpeed.Controls.Add(cbCsvLog);
             pnlSpeed.BackColor = System.Drawing.SystemColors.ControlLight;
             pnlSpeed.Dock = System.Windows.Forms.DockStyle.Top;
             pnlSpeed.Height = 55;
@@ -374,12 +374,6 @@ namespace DIS_Semestralka_S3_Nemocnica
             lblIntervalVal.AutoSize = true;
             lblIntervalVal.Location = new System.Drawing.Point(802, 10);
             lblIntervalVal.Text = "60 s";
-
-            // cbCsvLog
-            cbCsvLog.AutoSize = true;
-            cbCsvLog.Location = new System.Drawing.Point(910, 10);
-            cbCsvLog.Text = "CSV log (spomalenie)";
-            cbCsvLog.CheckedChanged += CbCsvLog_CheckedChanged;
 
             // pnlStatus
             pnlStatus.Controls.Add(lblSimCas);
@@ -698,7 +692,6 @@ namespace DIS_Semestralka_S3_Nemocnica
         private System.Windows.Forms.Label lblIntervalLabel;
         private System.Windows.Forms.TrackBar trkInterval;
         private System.Windows.Forms.Label lblIntervalVal;
-        private System.Windows.Forms.CheckBox cbCsvLog;
         private System.Windows.Forms.Panel pnlStatus;
         private System.Windows.Forms.Label lblSimCas;
         private System.Windows.Forms.Label lblReplikacia;
@@ -745,6 +738,6 @@ namespace DIS_Semestralka_S3_Nemocnica
         private System.Windows.Forms.Button btnMaxSpeed;
         private System.Windows.Forms.Button btnReplikacie;
         private System.Windows.Forms.Button btnVysledky;
-        private System.Windows.Forms.CheckBox cbCsvFinal;
+        private System.Windows.Forms.Button btnKonfig;
     }
 }

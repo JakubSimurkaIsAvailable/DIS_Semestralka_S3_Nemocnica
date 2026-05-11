@@ -45,11 +45,19 @@ namespace Agents.AgentZdrojov
 		//meta! sender="AgentUrgentu", id="98", type="Notice"
 		public void ProcessUvolnenieAmbulancie(MessageForm message)
 		{
-            ((UvolnenieZdrojov)MyAgent.FindAssistant(SimId.UvolnenieZdrojov)).Execute(message);
-            ZaznamVytazenosti();
-            SkusSpustitOsetrenie();
-            SkusSpustitVV();
-        }
+			((UvolnenieZdrojov)MyAgent.FindAssistant(SimId.UvolnenieZdrojov)).Execute(message);
+			ZaznamVytazenosti();
+			if (Sim.PreferVV)
+			{
+				SkusSpustitVV();
+				SkusSpustitOsetrenie();
+			}
+			else
+			{
+				SkusSpustitOsetrenie();
+				SkusSpustitVV();
+			}
+		}
 
 		private void SkusSpustitVV()
 		{
@@ -62,12 +70,19 @@ namespace Agents.AgentZdrojov
 			double wait = MySim.CurrentTime - msg.CasVstupuDoRadu;
 			MyAgent.LocDobaVV.AddValue(wait);
 			MyAgent.LocDlzkaRaduVV.AddWeightedValue(MyAgent.RadVV.Count, MySim.CurrentTime);
-            if (msg.PrisielSanitkou)
+			if (msg.PrisielSanitkou)
 				MyAgent.LocDobaVVSanitka.AddValue(wait);
 			else
 				MyAgent.LocDobaVVPeso.AddValue(wait);
 
-			msg.PridelenaMiestnost = MyAgent.MiestnostiBVolne.Dequeue();
+			if (Sim.MinPohybPersonalu)
+				SelectVVSmart(msg);
+			else
+			{
+				msg.PridelenaMiestnost = MyAgent.MiestnostiBVolne[0];
+				MyAgent.MiestnostiBVolne.RemoveAt(0);
+			}
+
 			((PriradenieZdrojovPreVstupneVysetrenie)MyAgent.FindAssistant(SimId.PriradenieZdrojovPreVstupneVysetrenie)).Execute(msg);
 			ZaznamVytazenosti();
 
@@ -76,30 +91,83 @@ namespace Agents.AgentZdrojov
 			Notice(msg);
 		}
 
+		private void SelectVVSmart(MyMessage msg)
+		{
+			// Hľadáme sestru, ktorá je už v niektorej voľnej MiestnostiB
+			foreach (var s in MyAgent.SestryVolne)
+			{
+				if (!MyAgent.SestraPoloha.TryGetValue(s.Id, out var pol) || pol is not MiestnostB mb) continue;
+				int idx = MyAgent.MiestnostiBVolne.IndexOf(mb);
+				if (idx < 0) continue;
+				msg.PridelenaMiestnost = mb;
+				MyAgent.MiestnostiBVolne.RemoveAt(idx);
+				msg.PriradenaSestrа = s;
+				MyAgent.SestryVolne.Remove(s);
+				return;
+			}
+			// Fallback: FIFO
+			msg.PridelenaMiestnost = MyAgent.MiestnostiBVolne[0];
+			MyAgent.MiestnostiBVolne.RemoveAt(0);
+		}
+
 		private void SkusSpustitOsetrenie()
 		{
-			// Serve one RadA patient (priority 1-2) from a type A room if possible
-			if (MyAgent.RadA.Count > 0 && MyAgent.MiestnostiAVolne.Count > 0
-				&& MyAgent.LekariVolne.Count > 0 && MyAgent.SestryVolne.Count > 0)
-			{
-				ServeOsetrenie(MyAgent.RadA, MyAgent.RadAItems, useA: true);
-			}
+			int volniLekari = MyAgent.LekariVolne.Count;
+			int volneSestry = MyAgent.SestryVolne.Count;
+			// Pri rezervácii: ošetrenie potrebuje aspoň 2 voľné zdroje daného typu
+			int minLekarPreB  = Sim.RezervaLekarPreA  ? 2 : 1;
+			int minSestraOsetr = Sim.RezervaSestraPreVV ? 2 : 1;
 
-			// Serve one RadAB patient (priority 3-4) from B if possible, otherwise from A
-			if (MyAgent.RadAB.Count > 0 && MyAgent.LekariVolne.Count > 0 && MyAgent.SestryVolne.Count > 0)
-			{
-				bool bVolna = MyAgent.MiestnostiBVolne.Count > 0;
-				bool aVolna = MyAgent.MiestnostiAVolne.Count > 0;
-				if (bVolna) { ServeOsetrenie(MyAgent.RadAB, MyAgent.RadABItems, useA: false); }
-				else if (aVolna) { ServeOsetrenie(MyAgent.RadAB, MyAgent.RadABItems, useA: true); }
-			}
+			bool radBPreferovat = Sim.PrefRadBEnabled && MyAgent.RadB.Count > Sim.PrefRadBPrah;
 
-			// Serve one RadB patient (priority 5) only from a type B room
-			if (MyAgent.RadB.Count > 0 && MyAgent.MiestnostiBVolne.Count > 0
-				&& MyAgent.LekariVolne.Count > 0 && MyAgent.SestryVolne.Count > 0)
+			// Serve one RadB patient first if its queue exceeded the configured threshold
+			if (radBPreferovat && MyAgent.RadB.Count > 0 && MyAgent.MiestnostiBVolne.Count > 0
+				&& volniLekari >= minLekarPreB && volneSestry >= minSestraOsetr)
 			{
 				ServeOsetrenie(MyAgent.RadB, MyAgent.RadBItems, useA: false);
+				volniLekari--;
+				volneSestry--;
+				return;
 			}
+
+			// Serve one RadA patient (priority 1-2) from a type A room if possible
+			if (MyAgent.RadA.Count > 0 && MyAgent.MiestnostiAVolne.Count > 0
+				&& volniLekari > 0 && volneSestry >= minSestraOsetr)
+			{
+				ServeOsetrenie(MyAgent.RadA, MyAgent.RadAItems, useA: true);
+				volniLekari--;
+				volneSestry--;
+				return;
+            }
+
+			// Serve one RadAB patient (priority 3-4) — preference A or B is configurable
+			if (MyAgent.RadAB.Count > 0)
+			{
+				bool mozeB = MyAgent.MiestnostiBVolne.Count > 0 && volniLekari >= minLekarPreB && volneSestry >= minSestraOsetr;
+				bool mozeA = MyAgent.MiestnostiAVolne.Count > 0 && volniLekari > 0            && volneSestry >= minSestraOsetr;
+				bool useA;
+				if (Sim.RadABPreferA)
+					useA = mozeA ? true  : mozeB ? false : false;
+				else
+					useA = mozeB ? false : mozeA ? true  : false;
+				if (mozeA || mozeB)
+				{
+					ServeOsetrenie(MyAgent.RadAB, MyAgent.RadABItems, useA: useA);
+					volniLekari--;
+					volneSestry--;
+				}
+				return;
+            }
+
+			// Serve one RadB patient (priority 5) only from a type B room
+			if (!radBPreferovat && MyAgent.RadB.Count > 0 && MyAgent.MiestnostiBVolne.Count > 0
+				&& volniLekari >= minLekarPreB && volneSestry >= minSestraOsetr)
+			{
+				ServeOsetrenie(MyAgent.RadB, MyAgent.RadBItems, useA: false);
+				volniLekari--;
+				volneSestry--;
+				return;
+            }
 		}
 
 		private void ServeOsetrenie(
@@ -125,15 +193,76 @@ namespace Agents.AgentZdrojov
 				0 => MyAgent.LocDlzkaRaduA,
 				1 => MyAgent.LocDlzkaRaduAB,
 				_ => MyAgent.LocDlzkaRaduB
-			}).AddWeightedValue(MyAgent.RadVV.Count, MySim.CurrentTime);
-            msg.PridelenaMiestnost = useA
-				? (Miestnost)MyAgent.MiestnostiAVolne.Dequeue()
-				: MyAgent.MiestnostiBVolne.Dequeue();
+			}).AddWeightedValue(msg.OsetrenieBucket switch
+			{
+				0 => MyAgent.RadA.Count,
+				1 => MyAgent.RadAB.Count,
+				_ => MyAgent.RadB.Count
+			}, MySim.CurrentTime);
+
+			if (Sim.MinPohybPersonalu)
+				SelectOsetrenieSmart(msg, useA);
+			else
+			{
+				msg.PridelenaMiestnost = useA
+					? (Miestnost)MyAgent.MiestnostiAVolne[0]
+					: MyAgent.MiestnostiBVolne[0];
+				if (useA) MyAgent.MiestnostiAVolne.RemoveAt(0);
+				else      MyAgent.MiestnostiBVolne.RemoveAt(0);
+			}
+
 			((PriradenieZdrojovPreOsetrenie)MyAgent.FindAssistant(SimId.PriradenieZdrojovPreOsetrenie)).Execute(msg);
 			ZaznamVytazenosti();
 			msg.Code = Mc.ZdrojePrideleneOsetrenie;
 			msg.Addressee = MySim.FindAgent(SimId.AgentUrgentu);
 			Notice(msg);
+		}
+
+		private void SelectOsetrenieSmart(MyMessage msg, bool useA)
+		{
+			// Skóre: +2 ak sestra je v danej miestnosti, +1 ak lekar je tam, +1 ak pacient je tam
+			int bestScore = -1;
+			int bestIdx   = 0;
+			Sestra? bestSestra = null;
+			Lekar?  bestLekar  = null;
+
+			if (useA)
+			{
+				for (int i = 0; i < MyAgent.MiestnostiAVolne.Count; i++)
+				{
+					var m = MyAgent.MiestnostiAVolne[i];
+					var s = MyAgent.SestryVolne.FirstOrDefault(x =>
+						MyAgent.SestraPoloha.TryGetValue(x.Id, out var p) && p == m);
+					var l = MyAgent.LekariVolne.FirstOrDefault(x =>
+						MyAgent.LekarPoloha.TryGetValue(x.Id, out var p) && p == m);
+					int score = (s != null ? 2 : 0) + (l != null ? 1 : 0)
+					          + (Sim.PacientJeUzVMiestnosti(msg.PacientId, m) ? 1 : 0);
+					if (score > bestScore) { bestScore = score; bestIdx = i; bestSestra = s; bestLekar = l; }
+					if (bestScore == 4) break;
+				}
+				msg.PridelenaMiestnost = MyAgent.MiestnostiAVolne[bestIdx];
+				MyAgent.MiestnostiAVolne.RemoveAt(bestIdx);
+			}
+			else
+			{
+				for (int i = 0; i < MyAgent.MiestnostiBVolne.Count; i++)
+				{
+					var m = MyAgent.MiestnostiBVolne[i];
+					var s = MyAgent.SestryVolne.FirstOrDefault(x =>
+						MyAgent.SestraPoloha.TryGetValue(x.Id, out var p) && p == m);
+					var l = MyAgent.LekariVolne.FirstOrDefault(x =>
+						MyAgent.LekarPoloha.TryGetValue(x.Id, out var p) && p == m);
+					int score = (s != null ? 2 : 0) + (l != null ? 1 : 0)
+					          + (Sim.PacientJeUzVMiestnosti(msg.PacientId, m) ? 1 : 0);
+					if (score > bestScore) { bestScore = score; bestIdx = i; bestSestra = s; bestLekar = l; }
+					if (bestScore == 4) break;
+				}
+				msg.PridelenaMiestnost = MyAgent.MiestnostiBVolne[bestIdx];
+				MyAgent.MiestnostiBVolne.RemoveAt(bestIdx);
+			}
+
+			if (bestSestra != null) { msg.PriradenaSestrа = bestSestra; MyAgent.SestryVolne.Remove(bestSestra); }
+			if (bestLekar  != null) { msg.PriradenyLekar  = bestLekar;  MyAgent.LekariVolne.Remove(bestLekar); }
 		}
 
 		private void ZaznamVytazenosti()

@@ -35,7 +35,12 @@ namespace Agents.AgentModelu
 			Notice(message);
 		}
 
-		private string Cas() =>
+        //meta! sender="WarmupEnd", id="140", type="Finish"
+        public void ProcessFinish(MessageForm message)
+        {
+        }
+
+        private string Cas() =>
 			TimeSpan.FromSeconds(MySim.CurrentTime).ToString(@"hh\:mm\:ss");
 
 		//meta! sender="AgentOkolia", id="6", type="Notice"
@@ -59,25 +64,29 @@ namespace Agents.AgentModelu
 		{
 		}
 
-		override public void ProcessMessage(MessageForm message)
-		{
-			switch (message.Code)
-			{
-			case Mc.VysetreniePacienta:
-				ProcessVysetreniePacienta(message);
-			break;
+        override public void ProcessMessage(MessageForm message)
+        {
+            switch (message.Code)
+            {
+                case Mc.PrichodPacienta:
+                    ProcessPrichodPacienta(message);
+                    break;
 
-			case Mc.PrichodPacienta:
-				ProcessPrichodPacienta(message);
-			break;
+                case Mc.VysetreniePacienta:
+                    ProcessVysetreniePacienta(message);
+                    break;
 
-			default:
-				ProcessDefault(message);
-			break;
-			}
-		}
-		//meta! tag="end"
-		public new AgentModelu MyAgent
+                case Mc.Finish:
+                    ProcessFinish(message);
+                    break;
+
+                default:
+                    ProcessDefault(message);
+                    break;
+            }
+        }
+        //meta! tag="end"
+        public new AgentModelu MyAgent
 		{
 			get
 			{

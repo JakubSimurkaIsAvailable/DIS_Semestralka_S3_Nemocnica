@@ -15,6 +15,9 @@ namespace Agents.AgentZdrojov.InstantAssistants
 		override public void Execute(MessageForm message)
 		{
 			var msg = (MyMessage)message;
+			msg.PriradenaSestrа    = null;
+			msg.PriradenyLekar     = null;
+			msg.PridelenaMiestnost = null;
 			msg.CasVstupuDoRadu = MySim.CurrentTime;
 			MyAgent.CakajuciOsetrenieIds.Add(msg.PacientId);
 			if (msg.Priorita <= 2)

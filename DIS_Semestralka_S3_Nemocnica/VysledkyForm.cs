@@ -9,7 +9,46 @@ namespace DIS_Semestralka_S3_Nemocnica
 {
     public partial class VysledkyForm : Form
     {
-        private record PlotEntry(FormsPlot Fp, Func<MySimulation, StatisticsCollector> GetColl, Func<double, double> Transform);
+        private sealed class PlotEntry
+        {
+            public FormsPlot Fp { get; }
+            public Func<MySimulation, StatisticsCollector> GetColl { get; }
+            public Func<double, double> Transform { get; }
+
+            private readonly List<double> _xs = new();
+            private readonly List<double> _ys = new();
+
+            public PlotEntry(FormsPlot fp, Func<MySimulation, StatisticsCollector> getColl, Func<double, double> transform)
+            {
+                Fp = fp; GetColl = getColl; Transform = transform;
+            }
+
+            public void Reset()
+            {
+                _xs.Clear();
+                _ys.Clear();
+                Fp.Plot.Clear();
+                Fp.Plot.Add.Annotation("Čakajte na dokončenie replikácií...");
+                Fp.Refresh();
+            }
+
+            public void AppendPoint(int rep, double avg)
+            {
+                _xs.Add(rep);
+                _ys.Add(avg);
+
+                var plt = Fp.Plot;
+                plt.Clear();
+
+                var sc = plt.Add.Scatter(_xs.ToArray(), _ys.ToArray());
+                sc.Color      = ScottPlot.Color.FromHex("#1565C0");
+                sc.MarkerSize = 3;
+                sc.LineWidth  = 2f;
+
+                plt.Axes.AutoScale();
+                Fp.Refresh();
+            }
+        }
 
         private readonly List<PlotEntry> _entries = new();
         private volatile bool _pendingUpdate;
@@ -33,40 +72,52 @@ namespace DIS_Semestralka_S3_Nemocnica
                 _entries.Add(new PlotEntry(fp, getColl, t));
             }
 
-            Add("Čas – celkovo",    "Čas v systéme – celkovo",        "minúty",      s => s.DobaVSysteme,          v => v / 60.0);
-            Add("Čas – pešo",       "Čas v systéme – pešo",           "minúty",      s => s.DobaVSystemePeso,      v => v / 60.0);
-            Add("Čas – sanitkou",   "Čas v systéme – sanitkou",       "minúty",      s => s.DobaVSystemeSanitka,   v => v / 60.0);
-            Add("VV – celkovo",     "Čakanie na VV – celkovo",        "minúty",      s => s.DobaVV,                v => v / 60.0);
-            Add("VV – pešo",        "Čakanie na VV – pešo",           "minúty",      s => s.DobaVVPeso,            v => v / 60.0);
-            Add("VV – sanitkou",    "Čakanie na VV – sanitkou",       "minúty",      s => s.DobaVVSanitka,         v => v / 60.0);
-            Add("Ošetr. – celkovo", "Čakanie na ošetrenie – celkovo", "minúty",      s => s.DobaOsetrenie,         v => v / 60.0);
-            Add("Ošetr. – Rad A",   "Čakanie na ošetrenie – Rad A",   "minúty",      s => s.DobaOsetrenieA,        v => v / 60.0);
-            Add("Ošetr. – Rad A/B", "Čakanie na ošetrenie – Rad A/B", "minúty",      s => s.DobaOsetrenieAB,       v => v / 60.0);
-            Add("Ošetr. – Rad B",   "Čakanie na ošetrenie – Rad B",   "minúty",      s => s.DobaOsetrenieB,           v => v / 60.0);
-            Add("Príchod → ošetr.", "Čas od príchodu do začiatku ošetrenia – celkovo",  "minúty", s => s.DobaPrichodDoOsetrenia,         v => v / 60.0);
+            Add("Čas – celkovo",    "Čas v systéme – celkovo",        "minúty",          s => s.DobaVSysteme,              v => v / 60.0);
+            Add("Čas – pešo",       "Čas v systéme – pešo",           "minúty",          s => s.DobaVSystemePeso,          v => v / 60.0);
+            Add("Čas – sanitkou",   "Čas v systéme – sanitkou",       "minúty",          s => s.DobaVSystemeSanitka,       v => v / 60.0);
+            Add("VV – celkovo",     "Čakanie na VV – celkovo",        "minúty",          s => s.DobaVV,                    v => v / 60.0);
+            Add("VV – pešo",        "Čakanie na VV – pešo",           "minúty",          s => s.DobaVVPeso,                v => v / 60.0);
+            Add("VV – sanitkou",    "Čakanie na VV – sanitkou",       "minúty",          s => s.DobaVVSanitka,             v => v / 60.0);
+            Add("Ošetr. – celkovo", "Čakanie na ošetrenie – celkovo", "minúty",          s => s.DobaOsetrenie,             v => v / 60.0);
+            Add("Ošetr. – Rad A",   "Čakanie na ošetrenie – Rad A",   "minúty",          s => s.DobaOsetrenieA,            v => v / 60.0);
+            Add("Ošetr. – Rad A/B", "Čakanie na ošetrenie – Rad A/B", "minúty",          s => s.DobaOsetrenieAB,           v => v / 60.0);
+            Add("Ošetr. – Rad B",   "Čakanie na ošetrenie – Rad B",   "minúty",          s => s.DobaOsetrenieB,            v => v / 60.0);
+            Add("Príchod → ošetr.", "Čas od príchodu do začiatku ošetrenia – celkovo",   "minúty", s => s.DobaPrichodDoOsetrenia,         v => v / 60.0);
             Add("Príchod → ošetr. (pešo)",    "Čas od príchodu do začiatku ošetrenia – pešo",    "minúty", s => s.DobaPrichodDoOsetreniaPeso,    v => v / 60.0);
             Add("Príchod → ošetr. (sanitka)", "Čas od príchodu do začiatku ošetrenia – sanitkou","minúty", s => s.DobaPrichodDoOsetreniaSanitka, v => v / 60.0);
-            Add("Lekári",           "Vyťaženie lekárov",              "percent (%)", s => s.VytazenostLekari,         v => v * 100.0);
-            Add("Sestry",           "Vyťaženie sestier",              "percent (%)", s => s.VytazenostSestry,      v => v * 100.0);
-            Add("Miestnosti A",     "Vyťaženie miestností A",         "percent (%)", s => s.VytazenostMiestnostiA, v => v * 100.0);
-            Add("Miestnosti B",     "Vyťaženie miestností B",         "percent (%)", s => s.VytazenostMiestnostiB, v => v * 100.0);
-            Add("Dĺžka radu A",     "Dĺžka radu A",                  "počet pacientov", s => s.DlzkaRadA,             v => v);
-            Add("Dĺžka radu A/B", "Dĺžka radu A/B",                "počet pacientov", s => s.DlzkaRadAB,            v => v);
-            Add("Dĺžka radu B",     "Dĺžka radu B",                 "počet pacientov", s => s.DlzkaRadB,             v => v);
+            Add("Lekári",           "Vyťaženie lekárov",              "percent (%)",     s => s.VytazenostLekari,          v => v * 100.0);
+            Add("Sestry",           "Vyťaženie sestier",              "percent (%)",     s => s.VytazenostSestry,          v => v * 100.0);
+            Add("Miestnosti A",     "Vyťaženie miestností A",         "percent (%)",     s => s.VytazenostMiestnostiA,     v => v * 100.0);
+            Add("Miestnosti B",     "Vyťaženie miestností B",         "percent (%)",     s => s.VytazenostMiestnostiB,     v => v * 100.0);
+            Add("Dĺžka radu A",     "Dĺžka radu A",                  "počet pacientov", s => s.DlzkaRadA,                 v => v);
+            Add("Dĺžka radu A/B",   "Dĺžka radu A/B",                "počet pacientov", s => s.DlzkaRadAB,                v => v);
+            Add("Dĺžka radu B",     "Dĺžka radu B",                  "počet pacientov", s => s.DlzkaRadB,                 v => v);
 
-            _onRepFinished = _ =>
+            _onRepFinished = sim =>
             {
                 if (IsDisposed || _pendingUpdate) return;
-                _pendingUpdate = true;
-                try { BeginInvoke(() => { RedrawAll(); _pendingUpdate = false; }); }
-                catch { _pendingUpdate = false; }
-            };
 
-            Shown += (_, _) => RedrawAll();
-            tabControl.SelectedIndexChanged += (_, _) =>
-            {
-                int i = tabControl.SelectedIndex;
-                if (i >= 0 && i < _entries.Count) Redraw(_entries[i], _currentSim);
+                // capture values on sim thread
+                var updates = new (int Rep, double Avg)?[_entries.Count];
+                for (int i = 0; i < _entries.Count; i++)
+                {
+                    var coll = _entries[i].GetColl(sim);
+                    if (coll.ValueCounter == 0) continue;
+                    updates[i] = (coll.ValueCounter, _entries[i].Transform(coll.Average));
+                }
+
+                _pendingUpdate = true;
+                try
+                {
+                    BeginInvoke(() =>
+                    {
+                        for (int i = 0; i < _entries.Count; i++)
+                            if (updates[i].HasValue)
+                                _entries[i].AppendPoint(updates[i]!.Value.Rep, updates[i]!.Value.Avg);
+                        _pendingUpdate = false;
+                    });
+                }
+                catch { _pendingUpdate = false; }
             };
         }
 
@@ -75,90 +126,8 @@ namespace DIS_Semestralka_S3_Nemocnica
             if (_currentSim != null)
                 _currentSim.ReplicationFinished -= _onRepFinished;
             _currentSim = sim;
+            foreach (var e in _entries) e.Reset();
             sim.ReplicationFinished += _onRepFinished;
-            if (IsHandleCreated)
-                try { BeginInvoke(RedrawAll); } catch { }
-        }
-
-        private void RedrawAll()
-        {
-            var sim = _currentSim;
-            foreach (var e in _entries) Redraw(e, sim);
-        }
-
-        private static void Redraw(PlotEntry e, MySimulation? sim)
-        {
-            var plt = e.Fp.Plot;
-            plt.Clear();
-
-            if (sim == null)
-            {
-                plt.Add.Annotation("Čakajte na spustenie simulácie...");
-                e.Fp.Refresh();
-                return;
-            }
-
-            var coll = e.GetColl(sim);
-            double[] vals = coll.GetValues();
-            if (vals.Length == 0)
-            {
-                plt.Add.Annotation("Čakajte na dokončenie replikácií...");
-                e.Fp.Refresh();
-                return;
-            }
-
-            int n = vals.Length;
-            double[] xs      = new double[n];
-            double[] ys      = new double[n];
-            double[] cumAvgs = new double[n];
-            double sum = 0;
-            for (int i = 0; i < n; i++)
-            {
-                xs[i]      = i + 1;
-                ys[i]      = e.Transform(vals[i]);
-                sum       += vals[i];
-                cumAvgs[i] = e.Transform(sum / (i + 1));
-            }
-
-            var sc = plt.Add.Scatter(xs, ys);
-            sc.Color      = ScottPlot.Color.FromHex("#90CAF9");
-            sc.MarkerSize = 5;
-            sc.LineWidth  = 0;
-            sc.LegendText = "hodnota replikácie";
-
-            var scAvg = plt.Add.Scatter(xs, cumAvgs);
-            scAvg.Color      = ScottPlot.Color.FromHex("#1565C0");
-            scAvg.MarkerSize = 0;
-            scAvg.LineWidth  = 2f;
-            scAvg.LegendText = "kumulatívny priemer";
-
-            var ci = coll.GetConfidenceInterval();
-            if (ci.HasValue)
-            {
-                double mean = e.Transform(coll.Average);
-                double lo   = e.Transform(ci.Value.Lower);
-                double hi   = e.Transform(ci.Value.Upper);
-
-                var hMean = plt.Add.HorizontalLine(mean);
-                hMean.Color      = ScottPlot.Color.FromHex("#E53935");
-                hMean.LineWidth  = 2;
-                hMean.LegendText = $"priemer: {mean:F2}";
-
-                var hLo = plt.Add.HorizontalLine(lo);
-                hLo.Color        = ScottPlot.Color.FromHex("#E53935").WithAlpha(0.5);
-                hLo.LineWidth    = 1.5f;
-                hLo.LinePattern  = ScottPlot.LinePattern.Dashed;
-                hLo.LegendText   = $"95% CI: [{lo:F2}, {hi:F2}]";
-
-                var hHi = plt.Add.HorizontalLine(hi);
-                hHi.Color        = ScottPlot.Color.FromHex("#E53935").WithAlpha(0.5);
-                hHi.LineWidth    = 1.5f;
-                hHi.LinePattern  = ScottPlot.LinePattern.Dashed;
-            }
-
-            plt.ShowLegend();
-            plt.Axes.AutoScale();
-            e.Fp.Refresh();
         }
     }
 }

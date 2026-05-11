@@ -1,5 +1,4 @@
 using Agents.AgentOkolia;
-using DIS_Semestralka_S3_Nemocnica.Generators;
 using OSPABA;
 using Simulation;
 
@@ -8,11 +7,9 @@ namespace Agents.AgentOkolia.ContinualAssistants
 	//meta! id="54"
 	public class PrichodPacienta : OSPABA.Scheduler
 	{
-		private ExponencialnyGenerator _exp;
 		public PrichodPacienta(int id, OSPABA.Simulation mySim, CommonAgent myAgent) :
 			base(id, mySim, myAgent)
 		{
-			_exp = new ExponencialnyGenerator(((MySimulation)mySim).SeedRandom, 1.0 / 574.2);
 		}
 
 		override public void PrepareReplication()
@@ -69,9 +66,6 @@ namespace Agents.AgentOkolia.ContinualAssistants
 			}
 		}
 
-		private double VygenerujCas()
-		{
-			return _exp.Generate();
-		}
+		private double VygenerujCas() => MyAgent.GenerujCasPrichoduPeso();
 	}
 }

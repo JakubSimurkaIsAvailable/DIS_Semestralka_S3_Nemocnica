@@ -18,15 +18,27 @@ namespace Agents.AgentZdrojov.InstantAssistants
 			var msg = (MyMessage)message;
 			if (msg.JePresunNaOsetrenie)
 			{
-				if (msg.PriradenaSestrа != null)    MyAgent.SestryVolne.Enqueue(msg.PriradenaSestrа);
-				if (msg.PriradenyLekar  != null)    MyAgent.LekariVolne.Enqueue(msg.PriradenyLekar);
-				if      (msg.PridelenaMiestnost is MiestnostA ma) MyAgent.MiestnostiAVolne.Enqueue(ma);
-				else if (msg.PridelenaMiestnost is MiestnostB mb) MyAgent.MiestnostiBVolne.Enqueue(mb);
+				if (msg.PriradenaSestrа != null)
+				{
+					MyAgent.SestraPoloha[msg.PriradenaSestrа.Id] = msg.PridelenaMiestnost;
+					MyAgent.SestryVolne.Add(msg.PriradenaSestrа);
+				}
+				if (msg.PriradenyLekar != null)
+				{
+					MyAgent.LekarPoloha[msg.PriradenyLekar.Id] = msg.PridelenaMiestnost;
+					MyAgent.LekariVolne.Add(msg.PriradenyLekar);
+				}
+				if      (msg.PridelenaMiestnost is MiestnostA ma) MyAgent.MiestnostiAVolne.Add(ma);
+				else if (msg.PridelenaMiestnost is MiestnostB mb) MyAgent.MiestnostiBVolne.Add(mb);
 			}
 			else
 			{
-				if (msg.PriradenaSestrа != null)    MyAgent.SestryVolne.Enqueue(msg.PriradenaSestrа);
-				if (msg.PridelenaMiestnost is MiestnostB mb)      MyAgent.MiestnostiBVolne.Enqueue(mb);
+				if (msg.PriradenaSestrа != null)
+				{
+					MyAgent.SestraPoloha[msg.PriradenaSestrа.Id] = msg.PridelenaMiestnost;
+					MyAgent.SestryVolne.Add(msg.PriradenaSestrа);
+				}
+				if (msg.PridelenaMiestnost is MiestnostB mb) MyAgent.MiestnostiBVolne.Add(mb);
 			}
 		}
 		public new AgentZdrojov MyAgent

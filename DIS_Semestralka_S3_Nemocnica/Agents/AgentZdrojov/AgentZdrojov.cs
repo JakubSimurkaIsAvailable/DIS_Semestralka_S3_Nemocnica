@@ -15,11 +15,16 @@ namespace Agents.AgentZdrojov
 		public List<MiestnostA> VsetkyMiestnostiA { get; } = new();
 		public List<MiestnostB> VsetkyMiestnostiB { get; } = new();
 
-		// ── Voľné fronty ──
-		public Queue<Sestra>    SestryVolne      { get; } = new();
-		public Queue<Lekar>     LekariVolne      { get; } = new();
-		public Queue<MiestnostA> MiestnostiAVolne { get; } = new();
-		public Queue<MiestnostB> MiestnostiBVolne { get; } = new();
+		// ── Voľné zoznamy ──
+		public List<Sestra>    SestryVolne      { get; } = new();
+		public List<Lekar>     LekariVolne      { get; } = new();
+		public List<MiestnostA> MiestnostiAVolne { get; } = new();
+		public List<MiestnostB> MiestnostiBVolne { get; } = new();
+
+		// ── Tracking polohy personálu pre minimalizáciu pohybu ──
+		// null = personál je v čakacej zóne (idle)
+		public Dictionary<int, Miestnost?> SestraPoloha { get; } = new();
+		public Dictionary<int, Miestnost?> LekarPoloha  { get; } = new();
 
 		// ── Computed ints pre spätnú kompatibilitu (Form1, štatistiky) ──
 		public int TotalSestry     => VsestkySestry.Count;
@@ -114,22 +119,25 @@ namespace Agents.AgentZdrojov
 			VsestkySestry.Clear();
 			for (int i = 0; i < sim.KonfSestry; i++) VsestkySestry.Add(new Sestra(i));
 			SestryVolne.Clear();
-			foreach (var s in VsestkySestry) SestryVolne.Enqueue(s);
+			SestryVolne.AddRange(VsestkySestry);
 
 			VsetciLekari.Clear();
 			for (int i = 0; i < sim.KonfLekari; i++) VsetciLekari.Add(new Lekar(i));
 			LekariVolne.Clear();
-			foreach (var l in VsetciLekari) LekariVolne.Enqueue(l);
+			LekariVolne.AddRange(VsetciLekari);
 
 			VsetkyMiestnostiA.Clear();
 			for (int i = 0; i < sim.KonfMiestnostiA; i++) VsetkyMiestnostiA.Add(new MiestnostA(i));
 			MiestnostiAVolne.Clear();
-			foreach (var m in VsetkyMiestnostiA) MiestnostiAVolne.Enqueue(m);
+			MiestnostiAVolne.AddRange(VsetkyMiestnostiA);
 
 			VsetkyMiestnostiB.Clear();
 			for (int i = 0; i < sim.KonfMiestnostiB; i++) VsetkyMiestnostiB.Add(new MiestnostB(i));
 			MiestnostiBVolne.Clear();
-			foreach (var m in VsetkyMiestnostiB) MiestnostiBVolne.Enqueue(m);
+			MiestnostiBVolne.AddRange(VsetkyMiestnostiB);
+
+			SestraPoloha.Clear();
+			LekarPoloha.Clear();
 
 			ResetLocalStats();
 			base.PrepareReplication();
