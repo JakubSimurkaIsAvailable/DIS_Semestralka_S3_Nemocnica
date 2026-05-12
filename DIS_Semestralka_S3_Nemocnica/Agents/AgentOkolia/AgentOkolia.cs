@@ -51,9 +51,9 @@ namespace Agents.AgentOkolia
 		{
 			var seed = ((MySimulation)MySim).SeedRandom;
 			new ManagerOkolia(SimId.ManagerOkolia, MySim, this);
-			_genPrichodSanitka = new GammaGenerator(seed, 4.37, 67.5);
+			_genPrichodSanitka = new GammaGenerator(seed, 4.37, 67.6);
 			new PrichodPacientaSanitka(SimId.PrichodPacientaSanitka, MySim, this);
-			_genPrichodPeso = new ExponencialnyGenerator(seed, 1.0 / 574.2);
+			_genPrichodPeso = new ExponencialnyGenerator(seed, 1.0 / 574);
 			new PrichodPacienta(SimId.PrichodPacienta, MySim, this);
 			AddOwnMessage(Mc.OdchodPacienta);
 		}

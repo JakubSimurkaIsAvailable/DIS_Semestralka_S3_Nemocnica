@@ -432,17 +432,23 @@ namespace DIS_Semestralka_S3_Nemocnica
             _csvWriter.WriteLine(string.Join(",", values));
         }
 
+        private static string FormatCas(double sec)
+        {
+            var ts = TimeSpan.FromSeconds(sec);
+            return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";
+        }
+
         private void AktualizujStatus()
         {
             if (_sim == null) return;
             lblReplikacia.Text = $"Replikácia: {_sim.CurrentReplication} / {_sim.ReplicationCount}";
-            lblSimCas.Text = $"Čas: {TimeSpan.FromSeconds(_sim.CurrentTime):hh\\:mm\\:ss}";
+            lblSimCas.Text = $"Čas: {FormatCas(_sim.CurrentTime)}";
         }
 
         private void RefreshUI()
         {
             if (_sim == null) return;
-            lblSimCas.Text = $"Čas: {TimeSpan.FromSeconds(_sim.CurrentTime):hh\\:mm\\:ss}";
+            lblSimCas.Text = $"Čas: {FormatCas(_sim.CurrentTime)}";
             lblReplikacia.Text = $"Replikácia: {_sim.CurrentReplication} / {_sim.ReplicationCount}";
             AktualizujPacientiTab();
             AktualizujZdrojeTab();
@@ -460,7 +466,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             {
                 _pacientTable.Rows.Add(
                     p.Id,
-                    TimeSpan.FromSeconds(p.CasPrichodu).ToString(@"hh\:mm\:ss"),
+                    FormatCas(p.CasPrichodu),
                     p.PrisielSanitkou ? "Áno" : "Nie",
                     p.Priorita > 0 ? p.Priorita.ToString() : "—",
                     p.Stav
@@ -586,8 +592,8 @@ namespace DIS_Semestralka_S3_Nemocnica
                 int idx = dgvStat.Rows.Add();
                 var row = dgvStat.Rows[idx];
                 row.Cells["colNazov"].Value    = isHeader ? name : "  " + name;
-                row.Cells["colReplikacia"].Value = isHeader ? "" : "—";
-                row.Cells["colPriemer"].Value  = isHeader ? "" : "—";
+                row.Cells["colReplikacia"].Value = isHeader ? "" : "0";
+                row.Cells["colPriemer"].Value  = isHeader ? "" : "0";
                 if (isHeader)
                     row.DefaultCellStyle = headerStyle;
             }
@@ -600,25 +606,24 @@ namespace DIS_Semestralka_S3_Nemocnica
             var o = s.AgentOkolia;
             var z = s.AgentZdrojov;
 
-            static string Cas(double sec) =>
-                sec < 0 ? "—" : TimeSpan.FromSeconds(sec).ToString(@"hh\:mm\:ss");
+            static string Cas(double sec) => sec < 0 ? "00:00:00" : FormatCas(sec);
             static string Pct(double v) => $"{v * 100:F1} %";
             static string Pocet(double v) => $"{v:F2}";
 
             // Stĺpec „Replikácia" — živé hodnoty z lokálnych kolektorov agentov.
             // V spomalenom móde sa aktualizujú priebežne, v rýchlom po každej replikácii.
             static string LiveCas(StatisticsCollector loc)
-                => loc.ValueCounter > 0 ? Cas(loc.Average) : "—";
+                => loc.ValueCounter > 0 ? Cas(loc.Average) : "00:00:00";
             static string LiveCount(int val)
-                => val > 0 ? $"{val}" : "—";
+                => $"{val}";
             static string LivePct(WeightedStatisticsCollector loc)
-                => loc.TotalWeight > 0 ? Pct(loc.WeightedAverage) : "—";
+                => loc.TotalWeight > 0 ? Pct(loc.WeightedAverage) : "0.0 %";
             static string LivePocet(WeightedStatisticsCollector loc)
-                => loc.TotalWeight > 0 ? Pocet(loc.WeightedAverage) : "—";
+                => loc.TotalWeight > 0 ? Pocet(loc.WeightedAverage) : "0.00";
 
             static string AggStat(StatisticsCollector c)
             {
-                if (c.ValueCounter == 0) return "—";
+                if (c.ValueCounter == 0) return "00:00:00";
                 var ci = c.GetConfidenceInterval();
                 string avg = Cas(c.Average);
                 if (ci == null) return $"{avg}  (n<30)";
@@ -626,7 +631,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             }
             static string AggCount(StatisticsCollector c)
             {
-                if (c.ValueCounter == 0) return "—";
+                if (c.ValueCounter == 0) return "0.0";
                 var ci = c.GetConfidenceInterval();
                 string avg = $"{c.Average:F1}";
                 if (ci == null) return $"{avg}  (n<30)";
@@ -634,7 +639,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             }
             static string AggPct(StatisticsCollector c)
             {
-                if (c.ValueCounter == 0) return "—";
+                if (c.ValueCounter == 0) return "0.0 %";
                 var ci = c.GetConfidenceInterval();
                 string avg = Pct(c.Average);
                 if (ci == null) return $"{avg}  (n<30)";
@@ -642,7 +647,7 @@ namespace DIS_Semestralka_S3_Nemocnica
             }
             static string AggPocet(StatisticsCollector c)
             {
-                if (c.ValueCounter == 0) return "—";
+                if (c.ValueCounter == 0) return "0.00";
                 var ci = c.GetConfidenceInterval();
                 string avg = Pocet(c.Average);
                 if (ci == null) return $"{avg}  (n<30)";

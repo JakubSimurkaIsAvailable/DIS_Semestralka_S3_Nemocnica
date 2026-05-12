@@ -8,6 +8,7 @@ using Agents.AgentZdrojov;
 using Agents.AgentOsetrenia;
 using DIS_Semestralka_S3_Nemocnica.Collectors;
 using System.Collections.Concurrent;
+using System.IO;
 using OSPAnimator;
 using System.Windows.Media;
 using Simulation.Resources;
@@ -66,9 +67,9 @@ namespace Simulation
         public StatisticsCollector DlzkaRadVV             { get; } = new();
 
         // ── Animation state (sim thread only) ─────────────────────────
-        private readonly Dictionary<int, AnimShapeItem> _animPacienti = new();
-        private AnimShapeItem[] _animSestry = [];
-        private AnimShapeItem[] _animLekari = [];
+        private readonly Dictionary<int, AnimImageItem> _animPacienti = new();
+        private AnimImageItem[] _animSestry = [];
+        private AnimImageItem[] _animLekari = [];
 
 
         private readonly Dictionary<int, (bool IsA, int Slot)>   _animPacientMiestnost = new();
@@ -86,9 +87,16 @@ namespace Simulation
         private readonly Dictionary<int, (bool IsA, int Slot)> _pacientRoom = new();
 
         private List<AnimShapeItem> _animMiestnosti = new();
+        private readonly Dictionary<(bool IsA, int Slot), AnimShapeItem> _animRoomItems = new();
+        private readonly Dictionary<(bool IsA, int Slot), RoomAnimInfo> _animRoomInfo = new();
 
         private Animator? AnimCore => Animator as Animator;
         public bool MaxSpeed { get; set; }
+
+        private sealed record RoomAnimInfo(float Cx, float Cy, float W, float H, System.Windows.Media.Color Color, string Label);
+
+        private static string AssetPath(string fileName)
+            => Path.Combine(AppContext.BaseDirectory, "Simulation/Assets", fileName);
 
         // ──────────────────────────────────────────────────────────────
 
@@ -105,6 +113,7 @@ namespace Simulation
         {
             if (Pacienti.TryGetValue(id, out var info))
                 info.Priorita = priorita;
+            AktualizujFarbuPacienta(id, priorita);
         }
 
         public void AktualizujMiestnostPacienta(int id, bool pouzilaMiestnostA)
@@ -126,7 +135,7 @@ namespace Simulation
             // Single OSPABA registration: collect stats first, then notify subscribers.
             OnReplicationDidFinish(_ =>
             {
-                // Finalize weighted utilization at simulation end time
+                // Finalize weighted stats at simulation end time
                 var z = AgentZdrojov;
                 double t = CurrentTime;
                 if (z.TotalLekari > 0)
@@ -137,6 +146,10 @@ namespace Simulation
                     z.LocVytazenostMiestnostiA.AddWeightedValue((double)(z.TotalMiestnostiA - z.VolneMiestnostiA) / z.TotalMiestnostiA, t);
                 if (z.TotalMiestnostiB > 0)
                     z.LocVytazenostMiestnostiB.AddWeightedValue((double)(z.TotalMiestnostiB - z.VolneMiestnostiB) / z.TotalMiestnostiB, t);
+                z.LocDlzkaRaduVV.AddWeightedValue(z.RadVV.Count, t);
+                z.LocDlzkaRaduA.AddWeightedValue(z.RadA.Count,   t);
+                z.LocDlzkaRaduAB.AddWeightedValue(z.RadAB.Count, t);
+                z.LocDlzkaRaduB.AddWeightedValue(z.RadB.Count,   t);
 
                 // Zbieranie priemerov replikácie do agregovaných kolektorov
                 var o = AgentOkolia;
@@ -227,6 +240,8 @@ namespace Simulation
             _sestraRoom.Clear();
             _lekarRoom.Clear();
             _pacientRoom.Clear();
+            _animRoomItems.Clear();
+            _animRoomInfo.Clear();
 
             AnimInitMiestnosti(anim);
             AnimInitSestry(anim);
@@ -236,8 +251,8 @@ namespace Simulation
         private void AnimInitSestry(Animator anim)
         {
             bool needCreate = _animSestry.Length != KonfSestry;
-            var old    = needCreate ? _animSestry : Array.Empty<AnimShapeItem>();
-            var target = needCreate ? new AnimShapeItem[KonfSestry] : _animSestry;
+            var old    = needCreate ? _animSestry : Array.Empty<AnimImageItem>();
+            var target = needCreate ? new AnimImageItem[KonfSestry] : _animSestry;
             anim.MyCanvas.Dispatcher.Invoke(() =>
             {
                 if (needCreate)
@@ -246,8 +261,9 @@ namespace Simulation
                         try { anim.Remove(s); } catch { }
                     for (int i = 0; i < KonfSestry; i++)
                     {
-                        target[i] = new AnimShapeItem(AnimShape.CIRCLE, Colors.MediumSeaGreen, 7);
-                        target[i].Label = $"S{i + 1}";
+                        target[i] = new AnimImageItem(AssetPath("nurse.png"));
+                        target[i].Width = 32;
+                        target[i].Height = 32;
                         anim.Register(target[i]);
                     }
                 }
@@ -264,8 +280,8 @@ namespace Simulation
         private void AnimInitLekari(Animator anim)
         {
             bool needCreate = _animLekari.Length != KonfLekari;
-            var old    = needCreate ? _animLekari : Array.Empty<AnimShapeItem>();
-            var target = needCreate ? new AnimShapeItem[KonfLekari] : _animLekari;
+            var old    = needCreate ? _animLekari : Array.Empty<AnimImageItem>();
+            var target = needCreate ? new AnimImageItem[KonfLekari] : _animLekari;
             anim.MyCanvas.Dispatcher.Invoke(() =>
             {
                 if (needCreate)
@@ -274,8 +290,9 @@ namespace Simulation
                         try { anim.Remove(l); } catch { }
                     for (int i = 0; i < KonfLekari; i++)
                     {
-                        target[i] = new AnimShapeItem(AnimShape.CIRCLE, Colors.Goldenrod, 7);
-                        target[i].Label = $"L{i + 1}";
+                        target[i] = new AnimImageItem(AssetPath("doctor.png"));
+                        target[i].Width = 32;
+                        target[i].Height = 32;
                         anim.Register(target[i]);
                     }
                 }
@@ -316,7 +333,12 @@ namespace Simulation
                     for (int i = 0; i < total; i++)
                     {
                         var (cx, cy) = SimAnim.RoomCenter(isA, i, KonfMiestnostiA, KonfMiestnostiB);
-                        Pridaj(cx, cy, roomW, roomH, color, (isA ? "A" : "B") + (i + 1));
+                        var label = (isA ? "A" : "B") + (i + 1);
+                        var key = (isA, i);
+                        _animRoomInfo[key] = new RoomAnimInfo(cx, cy, roomW, roomH, color, label);
+                        var item = VytvorMiestnost(anim, _animRoomInfo[key], active: false, time: 0.0);
+                        _animRoomItems[key] = item;
+                        _animMiestnosti.Add(item);
                     }
                 }
                 PridajMiestnosti(true,  KonfMiestnostiA);
@@ -343,11 +365,42 @@ namespace Simulation
 
                 var (wS, hS) = StaffSize(KonfSestry);
                 var (cxS, cyS) = StaffCenter(SimAnim.IdleSestra, KonfSestry);
-                Pridaj(cxS, cyS, wS, hS, Colors.MediumSeaGreen, "Sestry");
+                Pridaj(cxS, cyS, wS, hS, Colors.HotPink, "Sestry");
 
                 var (wL, hL) = StaffSize(KonfLekari);
                 var (cxL, cyL) = StaffCenter(SimAnim.IdleLekar, KonfLekari);
-                Pridaj(cxL, cyL, wL, hL, Colors.Goldenrod, "Lekári");
+                Pridaj(cxL, cyL, wL, hL, Colors.MediumPurple, "Lekári");
+            });
+        }
+
+        private AnimShapeItem VytvorMiestnost(Animator anim, RoomAnimInfo info, bool active, double time)
+        {
+            var shape = active ? AnimShape.RECTANGLE_EMPTY : AnimShape.RECTANGLE;
+            var item = new AnimShapeItem(shape, info.Color, info.H)
+            {
+                Width = info.W,
+                Height = info.H,
+                Label = info.Label
+            };
+            anim.Register(item);
+            item.SetPosition(time, info.Cx, info.Cy);
+            return item;
+        }
+
+        private void NastavMiestnostAktivna(bool isA, int slot, bool active)
+        {
+            var anim = AnimCore;
+            if (anim == null) return;
+            var key = (isA, slot);
+            if (!_animRoomInfo.TryGetValue(key, out var info)) return;
+            if (!_animRoomItems.TryGetValue(key, out var item)) return;
+            anim.MyCanvas.Dispatcher.Invoke(() =>
+            {
+                try { anim.Remove(item); } catch { }
+                var newItem = VytvorMiestnost(anim, info, active, CurrentTime);
+                _animRoomItems[key] = newItem;
+                _animMiestnosti.Remove(item);
+                _animMiestnosti.Add(newItem);
             });
         }
 
@@ -358,16 +411,30 @@ namespace Simulation
             var anim = AnimCore;
             if (anim == null) return;
             var (x, y) = sanitka ? SimAnim.SanVstup : SimAnim.PesiVstup;
-            var color = sanitka ? Colors.OrangeRed : Colors.SteelBlue;
-            AnimShapeItem item = null!;
+            AnimImageItem item = null!;
             anim.MyCanvas.Dispatcher.Invoke(() =>
             {
-                item = new AnimShapeItem(AnimShape.CIRCLE, color, 9);
-                item.Label = id.ToString();
+                item = new AnimImageItem(AssetPath("patient.png"));
+                item.Width = 26;
+                item.Height = 26;
                 anim.Register(item);
             });
             item.SetPosition(CurrentTime, x, y);
             _animPacienti[id] = item;
+        }
+
+        private void AktualizujFarbuPacienta(int id, int priorita)
+        {
+            if (!_animPacienti.TryGetValue(id, out var item)) return;
+            var anim = AnimCore;
+            if (anim == null) return;
+            var imagePath = priorita switch
+            {
+                <= 2 => AssetPath("patient_priority_1_2.png"),
+                <= 4 => AssetPath("patient_priority_3_4.png"),
+                _ => AssetPath("patient_priority_5.png")
+            };
+            anim.MyCanvas.Dispatcher.Invoke(() => item.ImagePath = imagePath);
         }
 
         // Called from ProcessPresunutiaPacienta before Hold — animates physical movement
@@ -395,6 +462,7 @@ namespace Simulation
                 _animVolneSlotVV.Enqueue(qslot);
                 _animPacientVVSlot.Remove(pacientId);
             }
+            NastavMiestnostAktivna(false, miestnost.Id, true);
             _animPacientMiestnost[pacientId] = (false, miestnost.Id);
             var (px, py) = SimAnim.RoomPatientPos(false, miestnost.Id, KonfMiestnostiA, KonfMiestnostiB);
             if (_animPacienti.TryGetValue(pacientId, out var item))
@@ -445,6 +513,7 @@ namespace Simulation
             {
                 _pacientRoom[pacientId] = (room.IsA, room.Slot);
                 _animPacientMiestnost.Remove(pacientId);
+                NastavMiestnostAktivna(room.IsA, room.Slot, false);
                 if (_animPacienti.TryGetValue(pacientId, out var item))
                 {
                     var (cx, cy) = SimAnim.RoomCenter(false, room.Slot, KonfMiestnostiA, KonfMiestnostiB);
@@ -462,6 +531,7 @@ namespace Simulation
                 _animVolneSlotOse.Enqueue(qslot);
                 _animPacientOseSlot.Remove(pacientId);
             }
+            NastavMiestnostAktivna(miestnost.IsA, miestnost.Id, true);
             _animPacientMiestnost[pacientId] = (miestnost.IsA, miestnost.Id);
             _animPacientStaff[pacientId] = (sestra.Id, lekar.Id);
         }
@@ -485,18 +555,14 @@ namespace Simulation
         public bool PacientJeUzVMiestnosti(int pacientId, Miestnost miestnost)
             => _pacientRoom.TryGetValue(pacientId, out var r) && r.IsA == miestnost.IsA && r.Slot == miestnost.Id;
 
-        // Osetrenie done: release room + staff slots; patient waits in front of their ambulance
+        // Osetrenie done: release room + staff slots
         public void AnimUvolniOsetrenie(int pacientId)
         {
             if (_animPacientMiestnost.TryGetValue(pacientId, out var room))
             {
                 _animPacientMiestnost.Remove(pacientId);
                 _pacientRoom[pacientId] = (room.IsA, room.Slot);
-                if (_animPacienti.TryGetValue(pacientId, out var item))
-                {
-                    var (cx, cy) = SimAnim.RoomCenter(room.IsA, room.Slot, KonfMiestnostiA, KonfMiestnostiB);
-                    item.SetPosition(CurrentTime, cx, cy + 50f);
-                }
+                NastavMiestnostAktivna(room.IsA, room.Slot, false);
             }
             _animPacientStaff.Remove(pacientId);
         }

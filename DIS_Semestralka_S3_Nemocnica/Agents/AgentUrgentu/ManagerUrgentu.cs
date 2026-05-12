@@ -134,6 +134,9 @@ namespace Agents.AgentUrgentu
 			Sim.AktualizujStavPacienta(msg.PacientId, "Odchod");
 			Sim.AnimUvolniOsetrenie(msg.PacientId);
 
+			double casOdchodu = Sim.AgentPresunov.GenerujCasOdchoduPacienta();
+			msg.CasOdchodu = casOdchodu;
+
 			var uvolni = new MyMessage(MySim);
 			uvolni.PriradenaSestrа    = msg.PriradenaSestrа;
 			uvolni.PriradenyLekar     = msg.PriradenyLekar;

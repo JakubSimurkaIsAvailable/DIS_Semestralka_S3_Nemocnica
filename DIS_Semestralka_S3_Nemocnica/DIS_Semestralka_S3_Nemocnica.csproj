@@ -23,4 +23,10 @@
     <PackageReference Include="ScottPlot.WinForms" Version="5.1.58" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Simulation\Assets\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

@@ -21,6 +21,11 @@ namespace Agents.AgentModelu.ContinualAssistants
 		//meta! sender="AgentModelu", id="140", type="Start"
 		public void ProcessStart(MessageForm message)
 		{
+			var sim = (MySimulation)MySim;
+			if (MySim.CurrentTime < sim.KonfZahrievanie)
+				Hold(sim.KonfZahrievanie - MySim.CurrentTime, message);
+			else
+				AssistantFinished(message);
 		}
 
 		//meta! userInfo="Process messages defined in code", id="0"

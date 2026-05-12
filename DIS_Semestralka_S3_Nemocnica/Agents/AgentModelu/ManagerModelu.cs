@@ -15,11 +15,15 @@ namespace Agents.AgentModelu
 		override public void PrepareReplication()
 		{
 			base.PrepareReplication();
-			// Setup component for the next replication
 
 			if (PetriNet != null)
-			{
 				PetriNet.Clear();
+
+			if (Sim.KonfZahrievanie > 0)
+			{
+				var msg = new MyMessage(MySim);
+				msg.Addressee = MyAgent.FindAssistant(SimId.WarmupEnd);
+				StartContinualAssistant(msg);
 			}
 		}
 
@@ -38,6 +42,7 @@ namespace Agents.AgentModelu
         //meta! sender="WarmupEnd", id="140", type="Finish"
         public void ProcessFinish(MessageForm message)
         {
+            Sim.ResetLocalStatsAtWarmupEnd();
         }
 
         private string Cas() =>

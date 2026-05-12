@@ -6,8 +6,8 @@ namespace Simulation
 
         public static readonly (float X, float Y) PesiVstup  = (96f,   609f);
         public static readonly (float X, float Y) SanVstup   = (1080f,  56f);
-        public static readonly (float X, float Y) IdleSestra = (1050f,  42f);
-        public static readonly (float X, float Y) IdleLekar  = (1050f, 119f);
+        public static readonly (float X, float Y) IdleSestra = (1170f,  20f);
+        public static readonly (float X, float Y) IdleLekar  = (1250f,  96f);
         public static readonly (float X, float Y) VVRad      = (264f,  441f);
         public static readonly (float X, float Y) OseRad     = (780f,  441f);
         public static readonly (float X, float Y) Vystup     = (528f,  609f);
@@ -34,13 +34,13 @@ namespace Simulation
         public static (float X, float Y) RoomPatientPos(bool isA, int idx, int totalA, int totalB)
         {
             var (cx, cy) = RoomCenter(isA, idx, totalA, totalB);
-            return (cx - 25f, cy);
+            return (cx + 4f, cy + 8f);
         }
 
         public static (float X, float Y) RoomStaffPos(bool isA, int idx, int staffCol, int totalA, int totalB)
         {
             var (cx, cy) = RoomCenter(isA, idx, totalA, totalB);
-            return (cx + staffCol * 28f + 5f, cy);
+            return (cx + staffCol * 28f + 28f, cy + 8f);
         }
 
         public static (float X, float Y) QueuePos((float X, float Y) center, int slot)

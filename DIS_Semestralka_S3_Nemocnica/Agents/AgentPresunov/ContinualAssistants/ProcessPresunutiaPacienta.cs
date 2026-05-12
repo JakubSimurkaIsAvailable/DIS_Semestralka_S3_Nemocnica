@@ -21,14 +21,20 @@ namespace Agents.AgentPresunov.ContinualAssistants
 		public void ProcessStart(MessageForm message)
 		{
 			var msg = (MyMessage)message;
-			double cas = msg.JeOdchod ? MyAgent.GenerujCasOdchoduPacienta()
-				: msg.PrisielSanitkou ? MyAgent.GenerujCasPrichoduPacientaSanitka()
-				: MyAgent.GenerujCasPrichoduPacientaSamostatne();
+			double cas;
 			var sim = (MySimulation)MySim;
 			if (msg.JeOdchod)
+			{
+				cas = msg.CasOdchodu;
 				sim.AnimPacientPohyb(msg.PacientId, cas, SimAnim.PesiVstup.X, SimAnim.PesiVstup.Y);
+			}
 			else
+			{
+				cas = msg.PrisielSanitkou
+					? MyAgent.GenerujCasPrichoduPacientaSanitka()
+					: MyAgent.GenerujCasPrichoduPacientaSamostatne();
 				sim.AnimPacientPohyb(msg.PacientId, cas, SimAnim.VVRad.X, SimAnim.VVRad.Y);
+			}
 			message.Code = Mc.PresunutiePacientaSkoncilo;
 			Hold(cas, message);
 		}
